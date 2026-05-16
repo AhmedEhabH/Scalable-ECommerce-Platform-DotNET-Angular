@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -58,7 +58,7 @@ import { ToastService } from '../../../shared/components/toast/toast.service';
 
         <div class="form-group">
           <label for="image">Product Image</label>
-          <input id="image" type="file" accept="image/*" (change)="onFileSelected($event)" />
+          <input id="image" type="file" accept="image/png, image/jpeg, image/jpg, image/webp" (change)="onFileSelected($event)" />
           @if (imagePreview()) {
             <div class="image-preview">
               <img [src]="imagePreview()" alt="Product preview" />
@@ -174,7 +174,7 @@ import { ToastService } from '../../../shared/components/toast/toast.service';
     @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
-export class AdminProductFormComponent implements OnInit {
+export class AdminProductFormComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private adminService = inject(AdminService);
@@ -258,15 +258,23 @@ export class AdminProductFormComponent implements OnInit {
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
+    if (!input.files || input.files.length === 0) return;
 
-    this.selectedFile = input.files[0];
+    const file = input.files[0];
+    if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.imagePreview.set(reader.result as string);
-    };
-    reader.readAsDataURL(this.selectedFile);
+    if (file.size > 5 * 1024 * 1024) {
+      this.toastService.error('File is too large. Maximum size is 5MB.');
+      input.value = '';
+      return;
+    }
+
+    if (this.imagePreview()) {
+      URL.revokeObjectURL(this.imagePreview()!);
+    }
+
+    this.selectedFile = file;
+    this.imagePreview.set(URL.createObjectURL(file));
   }
 
   private buildRequestPayload(): any {
@@ -364,6 +372,19 @@ export class AdminProductFormComponent implements OnInit {
   }
 
   cancel(): void {
+    this.cleanupPreviewUrl();
     this.router.navigate(['/admin/products']);
+  }
+
+  ngOnDestroy(): void {
+    this.cleanupPreviewUrl();
+  }
+
+  private cleanupPreviewUrl(): void {
+    const url = this.imagePreview();
+    if (url) {
+      URL.revokeObjectURL(url);
+      this.imagePreview.set(null);
+    }
   }
 }
