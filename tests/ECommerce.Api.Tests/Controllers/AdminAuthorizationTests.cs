@@ -44,7 +44,7 @@ public class AdminAuthorizationTests
     }
 
     [Fact]
-    public void ProductsController_Update_HasAuthorizeAdminAttribute()
+    public void ProductsController_Update_HasAuthorizeAdminSellerAttribute()
     {
         var method = typeof(ECommerce.Api.Controllers.ProductsController).GetMethod("Update");
         var attribute = method!.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true)
@@ -52,11 +52,11 @@ public class AdminAuthorizationTests
             .FirstOrDefault();
 
         attribute.Should().NotBeNull();
-        attribute!.Roles.Should().Be("Admin");
+        attribute!.Roles.Should().Be("Admin,Seller");
     }
 
     [Fact]
-    public void ProductsController_Delete_HasAuthorizeAdminAttribute()
+    public void ProductsController_Delete_HasAuthorizeAdminSellerAttribute()
     {
         var method = typeof(ECommerce.Api.Controllers.ProductsController).GetMethod("Delete");
         var attribute = method!.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true)
@@ -64,7 +64,7 @@ public class AdminAuthorizationTests
             .FirstOrDefault();
 
         attribute.Should().NotBeNull();
-        attribute!.Roles.Should().Be("Admin");
+        attribute!.Roles.Should().Be("Admin,Seller");
     }
 
     [Fact]

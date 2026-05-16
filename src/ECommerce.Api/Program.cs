@@ -118,7 +118,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>(
         name: "database",
-        tags: new[] { "ready" });
+        tags: HealthCheckTags.Ready);
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -227,3 +227,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+file static class HealthCheckTags
+{
+    public static readonly string[] Ready = ["ready"];
+}

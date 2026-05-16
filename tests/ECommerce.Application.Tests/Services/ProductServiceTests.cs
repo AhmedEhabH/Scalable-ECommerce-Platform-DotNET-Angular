@@ -14,6 +14,7 @@ public class ProductServiceTests
 {
     private readonly Mock<IProductRepository> _productRepositoryMock;
     private readonly Mock<ICategoryRepository> _categoryRepositoryMock;
+    private readonly Mock<IVendorRepository> _vendorRepositoryMock;
     private readonly Mock<ILoggerService> _loggerMock;
     private readonly ProductService _sut;
 
@@ -21,8 +22,9 @@ public class ProductServiceTests
     {
         _productRepositoryMock = new Mock<IProductRepository>();
         _categoryRepositoryMock = new Mock<ICategoryRepository>();
+        _vendorRepositoryMock = new Mock<IVendorRepository>();
         _loggerMock = new Mock<ILoggerService>();
-        _sut = new ProductService(_productRepositoryMock.Object, _categoryRepositoryMock.Object, _loggerMock.Object);
+        _sut = new ProductService(_productRepositoryMock.Object, _categoryRepositoryMock.Object, _vendorRepositoryMock.Object, _loggerMock.Object);
     }
 
     #region GetByIdAsync
@@ -305,7 +307,7 @@ public class ProductServiceTests
         _productRepositoryMock.Setup(r => r.UpdateAsync(product, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var result = await _sut.UpdateAsync(product.Id, request);
+        var result = await _sut.UpdateAsync(product.Id, request, null, true, false);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be("Updated Name");
@@ -318,10 +320,94 @@ public class ProductServiceTests
         _productRepositoryMock.Setup(r => r.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Product?)null);
 
-        var result = await _sut.UpdateAsync(productId, new UpdateProductRequest());
+        var result = await _sut.UpdateAsync(productId, new UpdateProductRequest(), null, true, false);
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be("PRODUCT_NOT_FOUND");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldReturnFailure_WhenSellerAttemptsToModifyOthersProduct()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var sellerVendorId = Guid.NewGuid();
+        var otherVendorId = Guid.NewGuid();
+        var product = CreateProduct(vendorId: otherVendorId);
+        var request = new UpdateProductRequest("Hacked Name");
+
+        var vendor = Vendor.Create(sellerUserId, "Test Vendor", null, null, "test@test.com");
+        typeof(BaseEntity).GetProperty("Id")?.SetValue(vendor, sellerVendorId);
+
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _vendorRepositoryMock.Setup(r => r.GetByUserIdAsync(sellerUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vendor);
+
+        var result = await _sut.UpdateAsync(product.Id, request, sellerUserId, false, true);
+
+        result.IsFailure.Should().BeTrue();
+        result.ErrorCode.Should().Be("FORBIDDEN");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldReturnSuccess_WhenSellerModifiesOwnProduct()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var sellerVendorId = Guid.NewGuid();
+        var product = CreateProduct(vendorId: sellerVendorId);
+        var request = new UpdateProductRequest("My Updated Product");
+
+        var vendor = Vendor.Create(sellerUserId, "Test Vendor", null, null, "test@test.com");
+        typeof(BaseEntity).GetProperty("Id")?.SetValue(vendor, sellerVendorId);
+
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _productRepositoryMock.Setup(r => r.UpdateAsync(product, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _vendorRepositoryMock.Setup(r => r.GetByUserIdAsync(sellerUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vendor);
+
+        var result = await _sut.UpdateAsync(product.Id, request, sellerUserId, false, true);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Name.Should().Be("My Updated Product");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldReturnSuccess_WhenAdminModifiesAnyProduct()
+    {
+        var adminUserId = Guid.NewGuid();
+        var otherVendorId = Guid.NewGuid();
+        var product = CreateProduct(vendorId: otherVendorId);
+        var request = new UpdateProductRequest("Admin Updated Product");
+
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _productRepositoryMock.Setup(r => r.UpdateAsync(product, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _sut.UpdateAsync(product.Id, request, adminUserId, true, false);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Name.Should().Be("Admin Updated Product");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldReturnFailure_WhenSellerHasNoVendorProfile()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var product = CreateProduct();
+        var request = new UpdateProductRequest("Hacked Name");
+
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _vendorRepositoryMock.Setup(r => r.GetByUserIdAsync(sellerUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Vendor?)null);
+
+        var result = await _sut.UpdateAsync(product.Id, request, sellerUserId, false, true);
+
+        result.IsFailure.Should().BeTrue();
+        result.ErrorCode.Should().Be("FORBIDDEN");
     }
 
     #endregion
@@ -337,7 +423,7 @@ public class ProductServiceTests
         _productRepositoryMock.Setup(r => r.DeleteAsync(product, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var result = await _sut.DeleteAsync(product.Id);
+        var result = await _sut.DeleteAsync(product.Id, null, true, false);
 
         result.IsSuccess.Should().BeTrue();
     }
@@ -349,10 +435,88 @@ public class ProductServiceTests
         _productRepositoryMock.Setup(r => r.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Product?)null);
 
-        var result = await _sut.DeleteAsync(productId);
+        var result = await _sut.DeleteAsync(productId, null, true, false);
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be("PRODUCT_NOT_FOUND");
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnFailure_WhenSellerAttemptsToDeleteOthersProduct()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var sellerVendorId = Guid.NewGuid();
+        var otherVendorId = Guid.NewGuid();
+        var product = CreateProduct(vendorId: otherVendorId);
+
+        var vendor = Vendor.Create(sellerUserId, "Test Vendor", null, null, "test@test.com");
+        typeof(BaseEntity).GetProperty("Id")?.SetValue(vendor, sellerVendorId);
+
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _vendorRepositoryMock.Setup(r => r.GetByUserIdAsync(sellerUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vendor);
+
+        var result = await _sut.DeleteAsync(product.Id, sellerUserId, false, true);
+
+        result.IsFailure.Should().BeTrue();
+        result.ErrorCode.Should().Be("FORBIDDEN");
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnSuccess_WhenSellerDeletesOwnProduct()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var sellerVendorId = Guid.NewGuid();
+        var product = CreateProduct(vendorId: sellerVendorId);
+
+        var vendor = Vendor.Create(sellerUserId, "Test Vendor", null, null, "test@test.com");
+        typeof(BaseEntity).GetProperty("Id")?.SetValue(vendor, sellerVendorId);
+
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _productRepositoryMock.Setup(r => r.DeleteAsync(product, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _vendorRepositoryMock.Setup(r => r.GetByUserIdAsync(sellerUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vendor);
+
+        var result = await _sut.DeleteAsync(product.Id, sellerUserId, false, true);
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnSuccess_WhenAdminDeletesAnyProduct()
+    {
+        var adminUserId = Guid.NewGuid();
+        var otherVendorId = Guid.NewGuid();
+        var product = CreateProduct(vendorId: otherVendorId);
+
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _productRepositoryMock.Setup(r => r.DeleteAsync(product, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _sut.DeleteAsync(product.Id, adminUserId, true, false);
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnFailure_WhenSellerHasNoVendorProfile()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var product = CreateProduct();
+
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _vendorRepositoryMock.Setup(r => r.GetByUserIdAsync(sellerUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Vendor?)null);
+
+        var result = await _sut.DeleteAsync(product.Id, sellerUserId, false, true);
+
+        result.IsFailure.Should().BeTrue();
+        result.ErrorCode.Should().Be("FORBIDDEN");
     }
 
     #endregion

@@ -168,15 +168,26 @@ public class ProductsController : BaseApiController
     /// <response code="403">Insufficient permissions</response>
     /// <response code="404">Product not found</response>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Seller")]
     [ProducesResponseType(typeof(ApiResponse<ProductDto>), 200)]
     [ProducesResponseType(typeof(ApiResponse<object>), 403)]
     [ProducesResponseType(typeof(ApiResponse<object>), 404)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request, CancellationToken cancellationToken)
     {
-        var result = await _productService.UpdateAsync(id, request, cancellationToken);
+        var result = await _productService.UpdateAsync(
+            id, 
+            request, 
+            _currentUserService.UserId,
+            _currentUserService.IsAdmin,
+            _currentUserService.IsSeller,
+            cancellationToken);
+        
         if (result.IsFailure)
+        {
+            if (result.ErrorCode == "FORBIDDEN")
+                return HandleForbidden(result.Error ?? "You do not have permission to modify this product");
             return HandleNotFound(result.Error ?? "Resource not found");
+        }
         return HandleSuccess(result.Value);
     }
 
@@ -190,15 +201,25 @@ public class ProductsController : BaseApiController
     /// <response code="403">Insufficient permissions</response>
     /// <response code="404">Product not found</response>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Seller")]
     [ProducesResponseType(typeof(ApiResponse<object>), 200)]
     [ProducesResponseType(typeof(ApiResponse<object>), 403)]
     [ProducesResponseType(typeof(ApiResponse<object>), 404)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var result = await _productService.DeleteAsync(id, cancellationToken);
+        var result = await _productService.DeleteAsync(
+            id,
+            _currentUserService.UserId,
+            _currentUserService.IsAdmin,
+            _currentUserService.IsSeller,
+            cancellationToken);
+        
         if (result.IsFailure)
+        {
+            if (result.ErrorCode == "FORBIDDEN")
+                return HandleForbidden(result.Error ?? "You do not have permission to delete this product");
             return HandleNotFound(result.Error ?? "Resource not found");
+        }
         return HandleOkWithMessage("Product deleted successfully");
     }
 }

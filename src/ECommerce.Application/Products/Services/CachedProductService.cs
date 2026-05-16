@@ -108,9 +108,9 @@ public class CachedProductService : IProductService
         return result;
     }
 
-    public async Task<Result<ProductDto>> UpdateAsync(Guid id, UpdateProductRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<ProductDto>> UpdateAsync(Guid id, UpdateProductRequest request, Guid? currentUserId, bool isAdmin, bool isSeller, CancellationToken cancellationToken = default)
     {
-        var result = await _inner.UpdateAsync(id, request, cancellationToken);
+        var result = await _inner.UpdateAsync(id, request, currentUserId, isAdmin, isSeller, cancellationToken);
         if (result.IsSuccess)
         {
             await _cache.RemoveByPrefixAsync("product:", cancellationToken);
@@ -118,9 +118,9 @@ public class CachedProductService : IProductService
         return result;
     }
 
-    public async Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteAsync(Guid id, Guid? currentUserId, bool isAdmin, bool isSeller, CancellationToken cancellationToken = default)
     {
-        var result = await _inner.DeleteAsync(id, cancellationToken);
+        var result = await _inner.DeleteAsync(id, currentUserId, isAdmin, isSeller, cancellationToken);
         if (result.IsSuccess)
         {
             await _cache.RemoveByPrefixAsync("product:", cancellationToken);

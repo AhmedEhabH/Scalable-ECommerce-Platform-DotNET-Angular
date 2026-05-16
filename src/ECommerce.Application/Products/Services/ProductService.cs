@@ -12,12 +12,18 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IVendorRepository _vendorRepository;
     private readonly ILoggerService _logger;
 
-    public ProductService(IProductRepository productRepository, ICategoryRepository categoryRepository, ILoggerService logger)
+    public ProductService(
+        IProductRepository productRepository, 
+        ICategoryRepository categoryRepository,
+        IVendorRepository vendorRepository,
+        ILoggerService logger)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
+        _vendorRepository = vendorRepository;
         _logger = logger;
     }
 
@@ -156,13 +162,35 @@ public class ProductService : IProductService
         return Result<ProductDto>.Success(MapToDto(product));
     }
 
-    public async Task<Result<ProductDto>> UpdateAsync(Guid id, UpdateProductRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<ProductDto>> UpdateAsync(Guid id, UpdateProductRequest request, Guid? currentUserId, bool isAdmin, bool isSeller, CancellationToken cancellationToken = default)
     {
         var product = await _productRepository.GetByIdAsync(id, cancellationToken);
         if (product == null)
         {
             _logger.LogWarning("Failed to update product: {ProductId} not found", id);
             return Result<ProductDto>.Failure("Product not found", "PRODUCT_NOT_FOUND");
+        }
+
+        if (isSeller && !isAdmin)
+        {
+            if (currentUserId == null)
+            {
+                _logger.LogWarning("Seller attempted to update product without user ID");
+                return Result<ProductDto>.Failure("User ID is required", "UNAUTHORIZED");
+            }
+
+            var vendor = await _vendorRepository.GetByUserIdAsync(currentUserId.Value, cancellationToken);
+            if (vendor == null)
+            {
+                _logger.LogWarning("Seller {UserId} attempted to update product but has no vendor profile", currentUserId);
+                return Result<ProductDto>.Failure("Seller vendor profile not found", "FORBIDDEN");
+            }
+
+            if (product.VendorId != vendor.Id)
+            {
+                _logger.LogWarning("Seller {UserId} attempted to update product {ProductId} owned by vendor {VendorId}", currentUserId, id, product.VendorId);
+                return Result<ProductDto>.Failure("You do not have permission to modify this product", "FORBIDDEN");
+            }
         }
 
         product.Update(
@@ -181,13 +209,35 @@ public class ProductService : IProductService
         return Result<ProductDto>.Success(MapToDto(product));
     }
 
-    public async Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteAsync(Guid id, Guid? currentUserId, bool isAdmin, bool isSeller, CancellationToken cancellationToken = default)
     {
         var product = await _productRepository.GetByIdAsync(id, cancellationToken);
         if (product == null)
         {
             _logger.LogWarning("Failed to delete product: {ProductId} not found", id);
             return Result.Failure("Product not found", "PRODUCT_NOT_FOUND");
+        }
+
+        if (isSeller && !isAdmin)
+        {
+            if (currentUserId == null)
+            {
+                _logger.LogWarning("Seller attempted to delete product without user ID");
+                return Result.Failure("User ID is required", "UNAUTHORIZED");
+            }
+
+            var vendor = await _vendorRepository.GetByUserIdAsync(currentUserId.Value, cancellationToken);
+            if (vendor == null)
+            {
+                _logger.LogWarning("Seller {UserId} attempted to delete product but has no vendor profile", currentUserId);
+                return Result.Failure("Seller vendor profile not found", "FORBIDDEN");
+            }
+
+            if (product.VendorId != vendor.Id)
+            {
+                _logger.LogWarning("Seller {UserId} attempted to delete product {ProductId} owned by vendor {VendorId}", currentUserId, id, product.VendorId);
+                return Result.Failure("You do not have permission to delete this product", "FORBIDDEN");
+            }
         }
 
         await _productRepository.DeleteAsync(product, cancellationToken);
