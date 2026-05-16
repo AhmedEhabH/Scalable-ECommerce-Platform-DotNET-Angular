@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ApiResponse } from '../models/auth.model';
 
 export interface DashboardSummary {
   totalOrders: number;
@@ -52,10 +53,10 @@ export class AdminService {
     return this.http.delete<any>(`${environment.apiBaseUrl}/products/${id}`);
   }
 
-  uploadImage(productId: string, file: File): Observable<any> {
+  uploadImage(productId: string, file: File): Observable<ApiResponse<any>> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<any>(`${environment.apiBaseUrl}/products/${productId}/images`, formData);
+    return this.http.post<ApiResponse<any>>(`${environment.apiBaseUrl}/products/${productId}/images`, formData);
   }
 
   getCategories(): Observable<any[]> {

@@ -344,11 +344,15 @@ export class AdminProductFormComponent implements OnInit, OnDestroy {
 
   private uploadImage(productId: string): void {
     this.adminService.uploadImage(productId, this.selectedFile!).subscribe({
-      next: () => {
+      next: (response) => {
+        if (response?.data) {
+          const updatedProduct = response.data;
+        }
         this.toastService.success('Product saved with image');
-        this.router.navigate([this.isEdit() ? '/admin/products' : '/admin/products']);
+        this.router.navigate(['/admin/products']);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Upload handler failed:', err);
         this.toastService.error('Product saved but image upload failed');
         this.router.navigate(['/admin/products']);
       }
