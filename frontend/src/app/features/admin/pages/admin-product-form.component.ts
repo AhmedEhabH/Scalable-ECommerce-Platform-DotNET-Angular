@@ -314,7 +314,7 @@ export class AdminProductFormComponent implements OnInit, OnDestroy {
             this.uploadImage(this.productId);
           } else {
             this.toastService.success('Product updated successfully');
-            this.router.navigate(['/admin/products']);
+            this.navigateToList();
           }
         },
         error: (err: any) => {
@@ -331,7 +331,7 @@ export class AdminProductFormComponent implements OnInit, OnDestroy {
             this.uploadImage(newId);
           } else {
             this.toastService.success('Product created successfully');
-            this.router.navigate(['/admin/products']);
+            this.navigateToList();
           }
         },
         error: (err: any) => {
@@ -342,6 +342,14 @@ export class AdminProductFormComponent implements OnInit, OnDestroy {
     }
   }
 
+  private get isSellerContext(): boolean {
+    return this.router.url.startsWith('/seller');
+  }
+
+  private navigateToList(): void {
+    this.router.navigate([this.isSellerContext ? '/seller/products' : '/admin/products']);
+  }
+
   private uploadImage(productId: string): void {
     this.adminService.uploadImage(productId, this.selectedFile!).subscribe({
       next: (response) => {
@@ -349,12 +357,12 @@ export class AdminProductFormComponent implements OnInit, OnDestroy {
           const updatedProduct = response.data;
         }
         this.toastService.success('Product saved with image');
-        this.router.navigate(['/admin/products']);
+        this.navigateToList();
       },
       error: (err) => {
         console.error('Upload handler failed:', err);
         this.toastService.error('Product saved but image upload failed');
-        this.router.navigate(['/admin/products']);
+        this.navigateToList();
       }
     });
   }
@@ -377,7 +385,7 @@ export class AdminProductFormComponent implements OnInit, OnDestroy {
 
   cancel(): void {
     this.cleanupPreviewUrl();
-    this.router.navigate(['/admin/products']);
+    this.navigateToList();
   }
 
   ngOnDestroy(): void {
