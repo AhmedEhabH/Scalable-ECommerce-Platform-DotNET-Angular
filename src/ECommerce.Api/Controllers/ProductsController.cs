@@ -76,6 +76,30 @@ public class ProductsController : BaseApiController
         return HandleSuccess(result.Value);
     }
 
+    /// <summary>
+    /// Get the current authenticated seller's products
+    /// </summary>
+    [HttpGet("my")]
+    [Authorize(Roles = "Seller")]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResult<ProductDto>>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 400)]
+    public async Task<IActionResult> GetMyProducts(CancellationToken cancellationToken)
+    {
+        var vendor = await _context.Vendors
+            .FirstOrDefaultAsync(v => v.UserId == _currentUserService.UserId, cancellationToken);
+
+        if (vendor == null)
+            return HandleBadRequest("Seller vendor profile not found. Please contact admin.");
+
+        var query = new ProductListQuery(VendorId: vendor.Id, PageSize: 1000);
+        var result = await _productService.GetPagedAsync(query, cancellationToken);
+
+        if (result.IsFailure)
+            return HandleBadRequest(result.Error ?? "Failed to load products");
+
+        return HandleSuccess(result.Value);
+    }
+
     [HttpPost("by-ids")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<List<ProductDto>>), 200)]
