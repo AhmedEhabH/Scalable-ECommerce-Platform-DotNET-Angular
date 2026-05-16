@@ -14,17 +14,20 @@ public class ProductService : IProductService
     private readonly ICategoryRepository _categoryRepository;
     private readonly IVendorRepository _vendorRepository;
     private readonly ILoggerService _logger;
+    private readonly IApplicationDbContext _context;
 
     public ProductService(
         IProductRepository productRepository, 
         ICategoryRepository categoryRepository,
         IVendorRepository vendorRepository,
-        ILoggerService logger)
+        ILoggerService logger,
+        IApplicationDbContext context)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _vendorRepository = vendorRepository;
         _logger = logger;
+        _context = context;
     }
 
     public async Task<Result<ProductDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -281,17 +284,19 @@ public class ProductService : IProductService
 
     public async Task<Result<ProductDto>> AddImageAsync(Guid productId, string imageUrl, string? altText, int displayOrder, CancellationToken cancellationToken = default)
     {
-        var product = await _productRepository.GetByIdAsync(productId, cancellationToken);
-        if (product == null)
-            return Result<ProductDto>.Failure("Product not found", "PRODUCT_NOT_FOUND");
-
         if (string.IsNullOrWhiteSpace(imageUrl))
             return Result<ProductDto>.Failure("Image URL is required", "INVALID_IMAGE_URL");
 
-        product.AddImage(imageUrl, altText, displayOrder);
-        await _productRepository.UpdateAsync(product, cancellationToken);
+        var productExists = await _productRepository.ExistsAsync(productId, cancellationToken);
+        if (!productExists)
+            return Result<ProductDto>.Failure("Product not found", "PRODUCT_NOT_FOUND");
 
-        return Result<ProductDto>.Success(MapToDto(product));
+        var newProductImage = ProductImage.Create(productId, imageUrl, altText, displayOrder);
+        _context.ProductImages.Add(newProductImage);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var product = await _productRepository.GetWithImagesAsync(productId, cancellationToken);
+        return Result<ProductDto>.Success(MapToDto(product!));
     }
 
     public async Task<Result> RemoveImageAsync(Guid productId, Guid imageId, CancellationToken cancellationToken = default)

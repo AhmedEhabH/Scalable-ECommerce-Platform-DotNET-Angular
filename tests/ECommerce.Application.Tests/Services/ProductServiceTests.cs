@@ -5,6 +5,7 @@ using ECommerce.Application.Products.Services;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Interfaces;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -16,6 +17,7 @@ public class ProductServiceTests
     private readonly Mock<ICategoryRepository> _categoryRepositoryMock;
     private readonly Mock<IVendorRepository> _vendorRepositoryMock;
     private readonly Mock<ILoggerService> _loggerMock;
+    private readonly Mock<IApplicationDbContext> _contextMock;
     private readonly ProductService _sut;
 
     public ProductServiceTests()
@@ -24,7 +26,8 @@ public class ProductServiceTests
         _categoryRepositoryMock = new Mock<ICategoryRepository>();
         _vendorRepositoryMock = new Mock<IVendorRepository>();
         _loggerMock = new Mock<ILoggerService>();
-        _sut = new ProductService(_productRepositoryMock.Object, _categoryRepositoryMock.Object, _vendorRepositoryMock.Object, _loggerMock.Object);
+        _contextMock = new Mock<IApplicationDbContext>();
+        _sut = new ProductService(_productRepositoryMock.Object, _categoryRepositoryMock.Object, _vendorRepositoryMock.Object, _loggerMock.Object, _contextMock.Object);
     }
 
     #region GetByIdAsync
@@ -611,20 +614,28 @@ public class ProductServiceTests
     public async Task AddImageAsync_ShouldReturnSuccess_WhenValidInput()
     {
         var product = CreateProduct();
-        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+        _productRepositoryMock.Setup(r => r.ExistsAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _productRepositoryMock.Setup(r => r.GetWithImagesAsync(product.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(product);
+
+        var mockImageSet = new Mock<DbSet<ProductImage>>();
+        _contextMock.Setup(c => c.ProductImages).Returns(mockImageSet.Object);
+        _contextMock.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         var result = await _sut.AddImageAsync(product.Id, "https://example.com/img.jpg", "Test Image", 1);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Images.Should().HaveCount(1);
+        mockImageSet.Verify(m => m.Add(It.IsAny<ProductImage>()), Times.Once);
+        _contextMock.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task AddImageAsync_ShouldReturnFailure_WhenProductDoesNotExist()
     {
-        _productRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Product?)null);
+        _productRepositoryMock.Setup(r => r.ExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         var result = await _sut.AddImageAsync(Guid.NewGuid(), "https://example.com/img.jpg", "Test", 1);
 
@@ -635,11 +646,7 @@ public class ProductServiceTests
     [Fact]
     public async Task AddImageAsync_ShouldReturnFailure_WhenImageUrlIsEmpty()
     {
-        var product = CreateProduct();
-        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(product);
-
-        var result = await _sut.AddImageAsync(product.Id, "", "Test", 1);
+        var result = await _sut.AddImageAsync(Guid.NewGuid(), "", "Test", 1);
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be("INVALID_IMAGE_URL");
@@ -648,11 +655,7 @@ public class ProductServiceTests
     [Fact]
     public async Task AddImageAsync_ShouldReturnFailure_WhenImageUrlIsWhitespace()
     {
-        var product = CreateProduct();
-        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(product);
-
-        var result = await _sut.AddImageAsync(product.Id, "   ", "Test", 1);
+        var result = await _sut.AddImageAsync(Guid.NewGuid(), "   ", "Test", 1);
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be("INVALID_IMAGE_URL");
