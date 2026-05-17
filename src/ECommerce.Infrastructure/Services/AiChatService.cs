@@ -61,7 +61,7 @@ public class AiChatService : IAiService
             {
                 endpoint = provider switch
                 {
-                    "gemini" => "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent",
+                    "gemini" => "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
                     "openai" => "https://api.openai.com/v1/chat/completions",
                     _ => throw new InvalidOperationException($"Unknown AI provider: {provider}")
                 };
