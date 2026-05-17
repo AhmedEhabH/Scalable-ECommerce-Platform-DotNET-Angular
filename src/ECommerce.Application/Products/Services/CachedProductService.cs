@@ -25,7 +25,7 @@ public class CachedProductService : IProductService
         try
         {
             var cached = await _cache.GetAsync<Result<ProductDto>>(cacheKey, cancellationToken);
-            if (cached != null)
+            if (cached != null && cached.IsSuccess)
                 return cached;
         }
         catch (Exception ex)
@@ -34,7 +34,7 @@ public class CachedProductService : IProductService
         }
 
         var result = await _inner.GetByIdAsync(id, cancellationToken);
-        if (result.IsSuccess)
+        if (result.IsSuccess && result.Value != null)
         {
             try
             {
@@ -55,7 +55,7 @@ public class CachedProductService : IProductService
         try
         {
             var cached = await _cache.GetAsync<Result<PaginatedResult<ProductDto>>>(cacheKey, cancellationToken);
-            if (cached != null)
+            if (cached != null && cached.IsSuccess)
                 return cached;
         }
         catch (Exception ex)
@@ -64,7 +64,7 @@ public class CachedProductService : IProductService
         }
 
         var result = await _inner.GetPagedAsync(query, cancellationToken);
-        if (result.IsSuccess)
+        if (result.IsSuccess && result.Value != null)
         {
             try
             {
@@ -85,7 +85,7 @@ public class CachedProductService : IProductService
         try
         {
             var cached = await _cache.GetAsync<Result<ProductDetailResponse>>(cacheKey, cancellationToken);
-            if (cached != null)
+            if (cached != null && cached.IsSuccess)
                 return cached;
         }
         catch (Exception ex)
@@ -94,7 +94,7 @@ public class CachedProductService : IProductService
         }
 
         var result = await _inner.GetBySlugAsync(slug, cancellationToken);
-        if (result.IsSuccess)
+        if (result.IsSuccess && result.Value != null)
         {
             try
             {
@@ -115,7 +115,7 @@ public class CachedProductService : IProductService
         try
         {
             var cached = await _cache.GetAsync<Result<IReadOnlyList<ProductDto>>>(cacheKey, cancellationToken);
-            if (cached != null)
+            if (cached != null && cached.IsSuccess)
                 return cached;
         }
         catch (Exception ex)
@@ -124,7 +124,7 @@ public class CachedProductService : IProductService
         }
 
         var result = await _inner.GetFeaturedAsync(count, cancellationToken);
-        if (result.IsSuccess)
+        if (result.IsSuccess && result.Value != null)
         {
             try
             {
@@ -145,7 +145,7 @@ public class CachedProductService : IProductService
         try
         {
             var cached = await _cache.GetAsync<Result<IReadOnlyList<ProductDto>>>(cacheKey, cancellationToken);
-            if (cached != null)
+            if (cached != null && cached.IsSuccess)
                 return cached;
         }
         catch (Exception ex)
@@ -154,7 +154,7 @@ public class CachedProductService : IProductService
         }
 
         var result = await _inner.GetByCategoryAsync(categoryId, cancellationToken);
-        if (result.IsSuccess)
+        if (result.IsSuccess && result.Value != null)
         {
             try
             {
