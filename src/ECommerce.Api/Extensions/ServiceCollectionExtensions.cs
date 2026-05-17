@@ -1,3 +1,5 @@
+using ECommerce.Application.Admin.Interfaces;
+using ECommerce.Application.Admin.Services;
 using ECommerce.Application.Auth.Interfaces;
 using ECommerce.Application.Cart.Interfaces;
 using ECommerce.Application.Categories.Interfaces;
@@ -37,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<ProductService>();
         services.AddScoped<CategoryService>();
         services.AddScoped<IProductService>(sp => new CachedProductService(sp.GetRequiredService<ProductService>(), sp.GetRequiredService<ICacheService>(), sp.GetRequiredService<ILogger<CachedProductService>>()));
