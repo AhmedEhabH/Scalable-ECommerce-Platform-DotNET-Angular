@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using ECommerce.Api.Middleware;
 using ECommerce.Api.Extensions;
 using ECommerce.Api.Filters;
@@ -6,6 +7,7 @@ using ECommerce.Infrastructure.Data;
 using ECommerce.Infrastructure.Services;
 using ECommerce.Infrastructure.Seeding;
 using ECommerce.Application.Common.Interfaces;
+using ECommerce.Application.Common.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -20,6 +22,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidationFilter>();
+});
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errorDict = new Dictionary<string, List<string>>();
+        foreach (var error in context.ModelState.Where(e => e.Value?.Errors.Count > 0))
+        {
+            errorDict[error.Key] = error.Value!.Errors.Select(e => e.ErrorMessage).ToList();
+        }
+        
+        return new BadRequestObjectResult(new
+        {
+            success = false,
+            message = "Validation failed",
+            errors = errorDict
+        });
+    };
 });
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(lifetime: ServiceLifetime.Scoped);
 builder.Services.AddEndpointsApiExplorer();

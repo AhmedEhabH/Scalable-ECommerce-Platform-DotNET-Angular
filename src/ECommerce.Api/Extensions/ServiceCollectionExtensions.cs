@@ -39,8 +39,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ProductService>();
         services.AddScoped<CategoryService>();
-        services.AddScoped<IProductService>(sp => new CachedProductService(sp.GetRequiredService<ProductService>(), sp.GetRequiredService<ICacheService>()));
-        services.AddScoped<ICategoryService>(sp => new CachedCategoryService(sp.GetRequiredService<CategoryService>(), sp.GetRequiredService<ICacheService>()));
+        services.AddScoped<IProductService>(sp => new CachedProductService(sp.GetRequiredService<ProductService>(), sp.GetRequiredService<ICacheService>(), sp.GetRequiredService<ILogger<CachedProductService>>()));
+        services.AddScoped<ICategoryService>(sp => new CachedCategoryService(sp.GetRequiredService<CategoryService>(), sp.GetRequiredService<ICacheService>(), sp.GetRequiredService<ILogger<CachedCategoryService>>()));
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPaymentService, PaymentService>();
