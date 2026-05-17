@@ -282,20 +282,42 @@ public class ProductService : IProductService
         return Result.Success();
     }
 
-    public async Task<Result<ProductDto>> AddImageAsync(Guid productId, string imageUrl, string? altText, int displayOrder, CancellationToken cancellationToken = default)
+    public async Task<Result<ProductDto>> AddImageAsync(Guid productId, string imageUrl, string? altText, int displayOrder, Guid? currentUserId, bool isAdmin, bool isSeller, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(imageUrl))
             return Result<ProductDto>.Failure("Image URL is required", "INVALID_IMAGE_URL");
 
-        var productExists = await _productRepository.ExistsAsync(productId, cancellationToken);
-        if (!productExists)
+        var product = await _productRepository.GetByIdAsync(productId, cancellationToken);
+        if (product == null)
             return Result<ProductDto>.Failure("Product not found", "PRODUCT_NOT_FOUND");
+
+        if (isSeller && !isAdmin)
+        {
+            if (currentUserId == null)
+            {
+                _logger.LogWarning("Seller attempted to upload image without user ID");
+                return Result<ProductDto>.Failure("User ID is required", "UNAUTHORIZED");
+            }
+
+            var vendor = await _vendorRepository.GetByUserIdAsync(currentUserId.Value, cancellationToken);
+            if (vendor == null)
+            {
+                _logger.LogWarning("Seller {UserId} attempted to upload image but has no vendor profile", currentUserId);
+                return Result<ProductDto>.Failure("Seller vendor profile not found", "FORBIDDEN");
+            }
+
+            if (product.VendorId != vendor.Id)
+            {
+                _logger.LogWarning("Seller {UserId} attempted to upload image for product {ProductId} owned by vendor {VendorId}", currentUserId, productId, product.VendorId);
+                return Result<ProductDto>.Failure("You do not have permission to modify this product", "FORBIDDEN");
+            }
+        }
 
         var newProductImage = ProductImage.Create(productId, imageUrl, altText, displayOrder);
         _context.ProductImages.Add(newProductImage);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var product = await _productRepository.GetWithImagesAsync(productId, cancellationToken);
+        product = await _productRepository.GetWithImagesAsync(productId, cancellationToken);
         return Result<ProductDto>.Success(MapToDto(product!));
     }
 

@@ -110,6 +110,8 @@ public class ProductsController : BaseApiController
     [Authorize(Roles = "Admin,Seller")]
     [ProducesResponseType(typeof(ApiResponse<ProductDto>), 200)]
     [ProducesResponseType(typeof(ApiResponse<object>), 400)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 403)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 404)]
     public async Task<IActionResult> UploadImage(Guid id, IFormFile file, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
@@ -126,9 +128,15 @@ public class ProductsController : BaseApiController
         await using var stream = file.OpenReadStream();
         var url = await _fileService.SaveFileAsync(stream, file.FileName, "products", cancellationToken);
 
-        var result = await _productService.AddImageAsync(id, url, file.FileName, 0, cancellationToken);
+        var result = await _productService.AddImageAsync(id, url, file.FileName, 0, _currentUserService.UserId, _currentUserService.IsAdmin, _currentUserService.IsSeller, cancellationToken);
         if (result.IsFailure)
+        {
+            if (result.ErrorCode == "FORBIDDEN")
+                return HandleForbidden(result.Error ?? "You do not have permission to modify this product");
+            if (result.ErrorCode == "PRODUCT_NOT_FOUND")
+                return HandleNotFound(result.Error ?? "Product not found");
             return HandleBadRequest(result.Error ?? "Failed to save image");
+        }
 
         return HandleSuccess(result.Value);
     }

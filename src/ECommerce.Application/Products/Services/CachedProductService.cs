@@ -144,9 +144,9 @@ public class CachedProductService : IProductService
         return result;
     }
 
-    public async Task<Result<ProductDto>> AddImageAsync(Guid productId, string imageUrl, string? altText, int displayOrder, CancellationToken cancellationToken = default)
+    public async Task<Result<ProductDto>> AddImageAsync(Guid productId, string imageUrl, string? altText, int displayOrder, Guid? currentUserId, bool isAdmin, bool isSeller, CancellationToken cancellationToken = default)
     {
-        var result = await _inner.AddImageAsync(productId, imageUrl, altText, displayOrder, cancellationToken);
+        var result = await _inner.AddImageAsync(productId, imageUrl, altText, displayOrder, currentUserId, isAdmin, isSeller, cancellationToken);
         if (result.IsSuccess)
             await _cache.RemoveByPrefixAsync("product:", cancellationToken);
         return result;

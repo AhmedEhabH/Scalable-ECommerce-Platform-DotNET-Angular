@@ -613,18 +613,21 @@ public class ProductServiceTests
     [Fact]
     public async Task AddImageAsync_ShouldReturnSuccess_WhenValidInput()
     {
-        var product = CreateProduct();
-        _productRepositoryMock.Setup(r => r.ExistsAsync(product.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        var vendor = Vendor.Create(Guid.NewGuid(), "Test Vendor", null, null, "vendor@test.com", null);
+        var product = CreateProduct(vendorId: vendor.Id);
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
         _productRepositoryMock.Setup(r => r.GetWithImagesAsync(product.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(product);
+        _vendorRepositoryMock.Setup(r => r.GetByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vendor);
 
         var mockImageSet = new Mock<DbSet<ProductImage>>();
         _contextMock.Setup(c => c.ProductImages).Returns(mockImageSet.Object);
         _contextMock.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
-        var result = await _sut.AddImageAsync(product.Id, "https://example.com/img.jpg", "Test Image", 1);
+        var result = await _sut.AddImageAsync(product.Id, "https://example.com/img.jpg", "Test Image", 1, null, false, false);
 
         result.IsSuccess.Should().BeTrue();
         mockImageSet.Verify(m => m.Add(It.IsAny<ProductImage>()), Times.Once);
@@ -634,19 +637,35 @@ public class ProductServiceTests
     [Fact]
     public async Task AddImageAsync_ShouldReturnFailure_WhenProductDoesNotExist()
     {
-        _productRepositoryMock.Setup(r => r.ExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Product?)null);
 
-        var result = await _sut.AddImageAsync(Guid.NewGuid(), "https://example.com/img.jpg", "Test", 1);
+        var result = await _sut.AddImageAsync(Guid.NewGuid(), "https://example.com/img.jpg", "Test", 1, null, false, false);
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be("PRODUCT_NOT_FOUND");
     }
 
     [Fact]
+    public async Task AddImageAsync_ShouldReturnFailure_WhenSellerDoesNotOwnProduct()
+    {
+        var product = CreateProduct();
+        var otherVendor = Vendor.Create(Guid.NewGuid(), "Other Vendor", null, null, "other@test.com", null);
+        _productRepositoryMock.Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _vendorRepositoryMock.Setup(r => r.GetByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(otherVendor);
+
+        var result = await _sut.AddImageAsync(product.Id, "https://example.com/img.jpg", "Test", 1, Guid.NewGuid(), false, true);
+
+        result.IsFailure.Should().BeTrue();
+        result.ErrorCode.Should().Be("FORBIDDEN");
+    }
+
+    [Fact]
     public async Task AddImageAsync_ShouldReturnFailure_WhenImageUrlIsEmpty()
     {
-        var result = await _sut.AddImageAsync(Guid.NewGuid(), "", "Test", 1);
+        var result = await _sut.AddImageAsync(Guid.NewGuid(), "", "Test", 1, null, false, false);
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be("INVALID_IMAGE_URL");
@@ -655,7 +674,7 @@ public class ProductServiceTests
     [Fact]
     public async Task AddImageAsync_ShouldReturnFailure_WhenImageUrlIsWhitespace()
     {
-        var result = await _sut.AddImageAsync(Guid.NewGuid(), "   ", "Test", 1);
+        var result = await _sut.AddImageAsync(Guid.NewGuid(), "   ", "Test", 1, null, false, false);
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be("INVALID_IMAGE_URL");

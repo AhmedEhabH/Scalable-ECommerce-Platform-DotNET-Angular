@@ -16,6 +16,6 @@ public interface IProductService
     Task<Result> DeleteAsync(Guid id, Guid? currentUserId, bool isAdmin, bool isSeller, CancellationToken cancellationToken = default);
     Task<Result> ToggleActiveAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result> ToggleFeaturedAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Result<ProductDto>> AddImageAsync(Guid productId, string imageUrl, string? altText, int displayOrder, CancellationToken cancellationToken = default);
+    Task<Result<ProductDto>> AddImageAsync(Guid productId, string imageUrl, string? altText, int displayOrder, Guid? currentUserId, bool isAdmin, bool isSeller, CancellationToken cancellationToken = default);
     Task<Result> RemoveImageAsync(Guid productId, Guid imageId, CancellationToken cancellationToken = default);
 }
