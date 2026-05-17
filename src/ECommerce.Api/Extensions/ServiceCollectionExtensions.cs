@@ -24,7 +24,11 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddMemoryCache();
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("Redis");
+            options.InstanceName = "ECommerce_";
+        });
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<ILoggerService, LoggerService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
