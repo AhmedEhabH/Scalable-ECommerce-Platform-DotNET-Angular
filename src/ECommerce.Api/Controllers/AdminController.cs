@@ -6,6 +6,7 @@ using ECommerce.Application.Products.Interfaces;
 using ECommerce.Application.Users.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Api.Controllers;
@@ -13,6 +14,7 @@ namespace ECommerce.Api.Controllers;
 [ApiController]
 [Route("api/admin")]
 [Authorize(Roles = "Admin")]
+[EnableRateLimiting("global")]
 public class AdminController : ControllerBase
 {
     private readonly IOrderService _orderService;

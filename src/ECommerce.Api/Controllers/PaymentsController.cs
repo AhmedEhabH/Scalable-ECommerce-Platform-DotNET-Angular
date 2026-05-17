@@ -5,10 +5,12 @@ using ECommerce.Application.Payments.DTOs;
 using ECommerce.Application.Payments.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerce.Api.Controllers;
 
 [Authorize]
+[EnableRateLimiting("global")]
 public class PaymentsController : BaseApiController
 {
     private readonly IPaymentService _paymentService;

@@ -81,8 +81,6 @@ public class AiChatService : IAiService
             var requestUrl = $"{endpoint}?key={apiKey}";
             _logger.LogInformation("Sending AI request to provider: {Provider}, url: {Url}", provider, requestUrl);
 
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
-
             var response = provider switch
             {
                 "gemini" => await SendGeminiRequestAsync(requestUrl, messages, cancellationToken),

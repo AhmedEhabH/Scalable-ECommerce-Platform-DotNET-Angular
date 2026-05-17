@@ -1,12 +1,14 @@
 using ECommerce.Api.Models;
 using ECommerce.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerce.Api.Controllers;
 
 /// <summary>
 /// AI Customer Assistant endpoints for shopping assistance
 /// </summary>
+[EnableRateLimiting("global")]
 public class AiController : BaseApiController
 {
     private readonly IAiService _aiService;

@@ -5,10 +5,12 @@ using ECommerce.Application.Orders.Interfaces;
 using ECommerce.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerce.Api.Controllers;
 
 [Authorize]
+[EnableRateLimiting("global")]
 public class OrdersController : BaseApiController
 {
     private readonly IOrderService _orderService;

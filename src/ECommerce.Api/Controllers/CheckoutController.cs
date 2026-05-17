@@ -5,6 +5,7 @@ using ECommerce.Application.Orders.Interfaces;
 using ECommerce.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerce.Api.Controllers;
 
@@ -12,6 +13,7 @@ namespace ECommerce.Api.Controllers;
 /// Checkout endpoints
 /// </summary>
 [Authorize]
+[EnableRateLimiting("global")]
 public class CheckoutController : BaseApiController
 {
     private readonly IOrderService _orderService;

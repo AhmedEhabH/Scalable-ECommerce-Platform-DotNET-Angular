@@ -2,12 +2,14 @@ using ECommerce.Application.Sellers.DTOs;
 using ECommerce.Application.Common.Interfaces;
 using ECommerce.Application.Products.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("global")]
 public class SellersController : ControllerBase
 {
     private readonly IApplicationDbContext _context;

@@ -16,6 +16,7 @@ using ECommerce.Infrastructure.Data;
 using ECommerce.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Http.Resilience;
 
 namespace ECommerce.Api.Extensions;
 
@@ -41,7 +42,23 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IFileService, LocalFileService>();
-        services.AddHttpClient<IAiService, AiChatService>();
+        services.AddHttpClient<IAiService, AiChatService>()
+            .AddStandardResilienceHandler(options =>
+            {
+                options.Retry.MaxRetryAttempts = 3;
+                options.Retry.Delay = TimeSpan.FromSeconds(1);
+                options.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
+                options.Retry.MaxDelay = TimeSpan.FromSeconds(10);
+                options.Retry.UseJitter = true;
+
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
+                options.CircuitBreaker.FailureRatio = 0.5;
+                options.CircuitBreaker.MinimumThroughput = 10;
+                options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(25);
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(5);
+            });
         
         return services;
     }
