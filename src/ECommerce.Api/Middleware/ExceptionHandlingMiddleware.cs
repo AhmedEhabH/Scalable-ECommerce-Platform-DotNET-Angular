@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using FluentValidation;
 
 namespace ECommerce.Api.Middleware;
 
@@ -51,6 +52,14 @@ public class ExceptionHandlingMiddleware
 
         return exception switch
         {
+            ValidationException validationEx => new ErrorResponse
+            {
+                Success = false,
+                StatusCode = (int)HttpStatusCode.BadRequest,
+                Message = "Validation failed",
+                Errors = validationEx.Errors.GroupBy(e => e.PropertyName).ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()),
+                TraceId = traceId
+            },
             ArgumentException => new ErrorResponse
             {
                 Success = false,

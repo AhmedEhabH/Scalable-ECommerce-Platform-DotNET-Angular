@@ -1,10 +1,12 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { catchError, throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const platformId = inject(PLATFORM_ID);
   const router = inject(Router);
   const authService = inject(AuthService);
   const excludedUrls = ['/auth/login', '/auth/register', '/auth/refresh-token'];
@@ -14,7 +16,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const token = authService.getStoredToken();
+  const token = isPlatformBrowser(platformId) ? authService.getStoredToken() : null;
 
   if (!token) {
     return next(req).pipe(
