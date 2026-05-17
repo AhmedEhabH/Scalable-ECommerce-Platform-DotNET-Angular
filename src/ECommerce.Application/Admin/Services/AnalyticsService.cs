@@ -56,7 +56,7 @@ public class AnalyticsService : IAnalyticsService
             {
                 ProductId = g.Key,
                 TotalSold = g.Sum(i => i.Quantity),
-                TotalRevenue = g.Sum(i => i.Total)
+                TotalRevenue = g.Sum(i => (i.Price - i.Discount) * i.Quantity)
             })
             .OrderByDescending(p => p.TotalSold)
             .Take(count)
