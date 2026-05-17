@@ -17,7 +17,7 @@ export class ProductsService {
   getProducts(query: ProductListQuery = {}): Observable<ApiResponse<PaginatedResult<Product>>> {
     let params = new HttpParams();
 
-    if (query.page) params = params.set('Page', query.page.toString());
+    params = params.set('Page', (query.page || 1).toString());
     if (query.pageSize) params = params.set('PageSize', query.pageSize.toString());
     if (query.searchTerm) params = params.set('SearchTerm', query.searchTerm);
     if (query.categoryId) params = params.set('CategoryId', query.categoryId);
