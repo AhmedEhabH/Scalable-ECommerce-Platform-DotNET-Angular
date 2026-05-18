@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Threading.RateLimiting;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,6 +97,11 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDatabaseContext(builder.Configuration);
 
 builder.Services.AddApplicationServices(builder.Configuration);
+
+builder.Services.AddHangfire(config =>
+    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
 
 builder.Services.AddRepositories();
 
@@ -225,6 +231,11 @@ app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireAuthorizationFilter()]
+});
 
 app.MapControllers();
 
