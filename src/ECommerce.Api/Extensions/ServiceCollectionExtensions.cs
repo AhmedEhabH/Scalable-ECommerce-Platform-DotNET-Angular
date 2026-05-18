@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IFileService, LocalFileService>();
+        services.AddScoped<IEmailService, MailKitEmailService>();
         services.AddScoped<ICartCleanupService, CartCleanupService>();
         services.AddHttpClient<IAiService, AiChatService>()
             .AddStandardResilienceHandler(options =>
