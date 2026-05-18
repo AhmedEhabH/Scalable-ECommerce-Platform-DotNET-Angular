@@ -124,6 +124,15 @@ ECommerce.Api → ECommerce.Infrastructure → ECommerce.Application → ECommer
 - [x] GitHub Actions CI
 - [x] Database seeding with sample data
 
+#### Background Jobs (Hangfire)
+- [x] Hangfire.AspNetCore + Hangfire.SqlServer installed and configured
+- [x] SQL Server storage for jobs (`UseSqlServerStorage` with `DefaultConnection`)
+- [x] Hangfire dashboard at `/hangfire` — secured with `HangfireAuthorizationFilter` (Admin role only)
+- [x] `CartCleanupService` — removes carts where `UpdatedAt` is older than 7 days
+- [x] Daily recurring job via `IRecurringJobManager.AddOrUpdate` using `Cron.Daily`
+- [x] Integration test verifies `/hangfire` returns 401 for unauthenticated requests
+- [x] Unit tests (`CartCleanupServiceTests`) verify cleanup logic with InMemory database
+
 ---
 
 ### Frontend (Angular)

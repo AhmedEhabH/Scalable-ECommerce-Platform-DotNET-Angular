@@ -208,6 +208,15 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    recurringJobManager.AddOrUpdate<ICartCleanupService>(
+        "cart-cleanup",
+        service => service.CleanupAbandonedCartsAsync(default),
+        Cron.Daily);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
