@@ -292,7 +292,7 @@ All backend routes are prefixed with `/api` (e.g., `/api/products`, `/api/auth/l
 - **No SSR**: The Angular app is purely client-side rendered. No `main.server.ts` or `provideServerRendering` exists.
 - **No API Gateway**: The frontend communicates directly with the backend API. No BFF or gateway layer.
 - **Single cache tier**: Redis is used for caching but not for session state or real-time features.
-- **No background jobs**: No Hangfire, Quartz, or similar scheduling for async tasks.
+- **Background jobs**: Hangfire with SQL Server storage, daily cart cleanup recurring job.
 - **No event bus**: No message queue (RabbitMQ, Azure Service Bus) for domain events.
 - **No WebSocket/SignalR**: No real-time updates (e.g., order status push).
 - **No localization/i18n**: English-only UI.
