@@ -19,6 +19,7 @@ import { AdminProductsComponent } from './features/admin/pages/admin-products.co
 import { AdminProductFormComponent } from './features/admin/pages/admin-product-form.component';
 import { AdminCategoriesComponent } from './features/admin/pages/admin-categories.component';
 import { AdminCategoryFormComponent } from './features/admin/pages/admin-category-form.component';
+import { AdminOrdersComponent } from './features/admin/pages/admin-orders.component';
 import { SellerProductsComponent } from './features/seller/pages/seller-products.component';
 import { authGuard, adminGuard, sellerGuard } from './core/guards/auth.guard';
 
@@ -44,7 +45,8 @@ export const routes: Routes = [
     { path: 'products/:id/edit', component: AdminProductFormComponent, title: 'Edit Product' },
     { path: 'categories', component: AdminCategoriesComponent, title: 'Categories' },
     { path: 'categories/new', component: AdminCategoryFormComponent, title: 'Add Category' },
-    { path: 'categories/:id/edit', component: AdminCategoryFormComponent, title: 'Edit Category' }
+    { path: 'categories/:id/edit', component: AdminCategoryFormComponent, title: 'Edit Category' },
+    { path: 'orders', component: AdminOrdersComponent, title: 'Orders' }
   ]},
   
   { path: 'seller', redirectTo: 'seller/products', pathMatch: 'full' },

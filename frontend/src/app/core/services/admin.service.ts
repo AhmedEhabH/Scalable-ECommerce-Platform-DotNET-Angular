@@ -82,4 +82,12 @@ export class AdminService {
   deactivateCategory(id: string): Observable<any> {
     return this.http.patch<any>(`${environment.apiBaseUrl}/categories/${id}/deactivate`, {});
   }
+
+  getOrders(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/orders?_t=${Date.now()}`);
+  }
+
+  updateOrderStatus(orderId: string, status: string): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/orders/${orderId}/status`, { status });
+  }
 }

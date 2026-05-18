@@ -194,6 +194,35 @@ public class OrderService : IOrderService
         }
     }
 
+    public async Task<Result<OrderDto>> AdminUpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus, CancellationToken cancellationToken = default)
+    {
+        var order = await _context.Orders
+            .Include(o => o.User)
+            .Include(o => o.Items)
+            .Include(o => o.Payment)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order == null)
+            return Result<OrderDto>.Failure("Order not found");
+
+        try
+        {
+            order.UpdateStatus(newStatus);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var userEmail = order.User!.Email;
+            _backgroundJobClient.Enqueue<IEmailService>(emailService =>
+                emailService.SendEmailAsync(userEmail, "Order Status Update",
+                    $"Your order status is now {newStatus}", CancellationToken.None));
+
+            return Result<OrderDto>.Success(MapToOrderDto(order));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Result<OrderDto>.Failure(ex.Message);
+        }
+    }
+
     private static OrderDto MapToOrderDto(Order order)
     {
         var items = order.Items.Select(i => new OrderItemDto(

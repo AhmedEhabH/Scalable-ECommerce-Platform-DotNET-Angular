@@ -41,6 +41,7 @@ export interface OrderDto {
   totalItems: number;
   paymentId?: string;
   paymentStatus?: string;
+  userEmail?: string;
 }
 
 export interface OrderResponse {

@@ -17,7 +17,8 @@ public record OrderDto(
     IReadOnlyCollection<OrderItemDto> Items,
     int TotalItems,
     Guid? PaymentId,
-    string? PaymentStatus
+    string? PaymentStatus,
+    string? UserEmail = null
 );
 
 public record OrderItemDto(

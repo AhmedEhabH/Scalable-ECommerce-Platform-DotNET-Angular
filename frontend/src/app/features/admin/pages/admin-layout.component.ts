@@ -14,7 +14,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
           <a routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a>
           <a routerLink="/admin/products" routerLinkActive="active">Products</a>
           <a routerLink="/admin/categories" routerLinkActive="active">Categories</a>
-          <a routerLink="/admin/orders" routerLinkActive="active" class="disabled">Orders</a>
+          <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
           <a routerLink="/admin/users" routerLinkActive="active" class="disabled">Users</a>
         </nav>
         <div class="admin-footer">
