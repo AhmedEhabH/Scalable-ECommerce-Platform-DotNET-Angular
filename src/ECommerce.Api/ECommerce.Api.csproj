@@ -7,6 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <UserSecretsId>3e857fe7-e0e4-48fe-95c9-3f4cf01aa1e7</UserSecretsId>
+    <InternalsVisibleTo>ECommerce.Api.Tests</InternalsVisibleTo>
   </PropertyGroup>
 
   <ItemGroup>
