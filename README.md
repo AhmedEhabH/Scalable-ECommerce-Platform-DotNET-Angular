@@ -158,6 +158,21 @@ Below are screenshots showcasing the platform's key features and user flows:
    ```
 2. Open `.env` and fill in the values for each key.
 
+### Generate RSA Key Pair (Required for JWT)
+
+The API uses RS256 (asymmetric) JWT signing. Generate a key pair:
+
+```bash
+openssl genrsa -out jwt-private.pem 2048
+openssl rsa -in jwt-private.pem -pubout -out jwt-public.pem
+```
+
+Then base64-encode each file and set the values in `.env`:
+- `JWT_PRIVATE_KEY_BASE64` — base64 of `jwt-private.pem`
+- `JWT_PUBLIC_KEY_BASE64` — base64 of `jwt-public.pem`
+
+> **Note:** The `.pem` files are gitignored — never commit them.
+
 ### Docker (Quick Start)
 
 ```bash

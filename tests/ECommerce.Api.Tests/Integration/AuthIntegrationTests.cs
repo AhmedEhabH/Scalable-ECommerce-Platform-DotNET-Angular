@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using ECommerce.Application.Auth.DTOs;
 using ECommerce.Application.Auth.Interfaces;
 using ECommerce.Application.Common.Interfaces;
@@ -18,9 +19,18 @@ public class AuthIntegrationTests : IDisposable
     public AuthIntegrationTests()
     {
         _context = TestDatabaseFixture.CreateInMemoryContext(Guid.NewGuid().ToString());
+
+        var (privateKeyBase64, _) = GenerateRsaKeyPair();
+        Environment.SetEnvironmentVariable("JWT_PRIVATE_KEY_BASE64", privateKeyBase64);
         
         var config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true)
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Issuer"] = "ECommerceApi",
+                ["Jwt:Audience"] = "ECommerceClient",
+                ["Jwt:AccessTokenExpirationMinutes"] = "60",
+                ["Jwt:RefreshTokenExpirationDays"] = "7"
+            }!)
             .Build();
             
         var passwordHasher = new PasswordHasher();
@@ -36,6 +46,18 @@ public class AuthIntegrationTests : IDisposable
     {
         _context.Database.EnsureDeleted();
         _context.Dispose();
+        Environment.SetEnvironmentVariable("JWT_PRIVATE_KEY_BASE64", null);
+    }
+
+    private static (string privateKeyBase64, string publicKeyBase64) GenerateRsaKeyPair()
+    {
+        using var rsa = RSA.Create(2048);
+        var privateKeyPem = rsa.ExportRSAPrivateKeyPem();
+        var publicKeyPem = rsa.ExportSubjectPublicKeyInfoPem();
+        return (
+            Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(privateKeyPem)),
+            Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(publicKeyPem))
+        );
     }
 
     [Fact]

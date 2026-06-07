@@ -23,6 +23,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -129,7 +130,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    var jwtKey = builder.Configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is missing");
+    var rsaPublicKey = LoadRsaPublicKey();
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -151,7 +152,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        IssuerSigningKey = rsaPublicKey,
         RoleClaimType = System.Security.Claims.ClaimTypes.Role
     };
 });
@@ -351,6 +352,31 @@ if (!app.Environment.IsEnvironment("Testing"))
 }
 
 app.Run();
+
+static RsaSecurityKey LoadRsaPublicKey()
+{
+    var publicKeyBase64 = Environment.GetEnvironmentVariable("JWT_PUBLIC_KEY_BASE64");
+    var publicKeyPath = Environment.GetEnvironmentVariable("JWT_PUBLIC_KEY_PATH");
+    string pem;
+
+    if (!string.IsNullOrEmpty(publicKeyBase64))
+    {
+        pem = Encoding.UTF8.GetString(Convert.FromBase64String(publicKeyBase64));
+    }
+    else if (!string.IsNullOrEmpty(publicKeyPath) && File.Exists(publicKeyPath))
+    {
+        pem = File.ReadAllText(publicKeyPath);
+    }
+    else
+    {
+        throw new InvalidOperationException(
+            "JWT public key not configured. Set JWT_PUBLIC_KEY_BASE64 or JWT_PUBLIC_KEY_PATH environment variable.");
+    }
+
+    var rsa = System.Security.Cryptography.RSA.Create();
+    rsa.ImportFromPem(pem.AsSpan());
+    return new RsaSecurityKey(rsa);
+}
 
 file static class HealthCheckTags
 {

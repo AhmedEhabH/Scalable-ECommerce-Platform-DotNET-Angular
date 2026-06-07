@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using ECommerce.Application.Auth.DTOs;
 using ECommerce.Application.Auth.Interfaces;
 using ECommerce.Application.Common.Interfaces;
@@ -23,10 +24,11 @@ public class JwtRoleTests : IDisposable
     {
         _context = TestDatabaseFixture.CreateInMemoryContext(Guid.NewGuid().ToString());
 
+        var (privateKeyBase64, _) = GenerateRsaKeyPair();
+
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Jwt:SecretKey"] = "YourSuperSecretKeyThatShouldBeAtLeast32CharactersLong!",
                 ["Jwt:Issuer"] = "ECommerceApi",
                 ["Jwt:Audience"] = "ECommerceClient",
                 ["Jwt:AccessTokenExpirationMinutes"] = "60",
@@ -34,6 +36,7 @@ public class JwtRoleTests : IDisposable
             }!)
             .Build();
 
+        Environment.SetEnvironmentVariable("JWT_PRIVATE_KEY_BASE64", privateKeyBase64);
         _tokenService = new TokenService(config);
     }
 
@@ -41,6 +44,18 @@ public class JwtRoleTests : IDisposable
     {
         _context.Database.EnsureDeleted();
         _context.Dispose();
+        Environment.SetEnvironmentVariable("JWT_PRIVATE_KEY_BASE64", null);
+    }
+
+    private static (string privateKeyBase64, string publicKeyBase64) GenerateRsaKeyPair()
+    {
+        using var rsa = RSA.Create(2048);
+        var privateKeyPem = rsa.ExportRSAPrivateKeyPem();
+        var publicKeyPem = rsa.ExportSubjectPublicKeyInfoPem();
+        return (
+            Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(privateKeyPem)),
+            Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(publicKeyPem))
+        );
     }
 
     [Fact]

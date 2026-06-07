@@ -12,17 +12,18 @@ public class TokenService : ITokenService
     private readonly IConfiguration _configuration;
     private readonly int _accessTokenExpirationMinutes;
     private readonly int _refreshTokenExpirationDays;
+    private readonly RsaSecurityKey _rsaPrivateKey;
 
     public TokenService(IConfiguration configuration)
     {
         _configuration = configuration;
         _accessTokenExpirationMinutes = _configuration.GetValue<int>("Jwt:AccessTokenExpirationMinutes", 60);
         _refreshTokenExpirationDays = _configuration.GetValue<int>("Jwt:RefreshTokenExpirationDays", 7);
+        _rsaPrivateKey = LoadRsaPrivateKey();
     }
 
     public string GenerateAccessToken(Guid userId, string email, string role)
     {
-        var key = GetSecurityKey();
         var issuer = _configuration["Jwt:Issuer"];
         var audience = _configuration["Jwt:Audience"];
 
@@ -34,7 +35,7 @@ public class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var credentials = new SigningCredentials(_rsaPrivateKey, SecurityAlgorithms.RsaSha256);
 
         var token = new JwtSecurityToken(
             issuer: issuer,
@@ -60,10 +61,28 @@ public class TokenService : ITokenService
         return DateTime.UtcNow.AddMinutes(_accessTokenExpirationMinutes);
     }
 
-    private SymmetricSecurityKey GetSecurityKey()
+    private static RsaSecurityKey LoadRsaPrivateKey()
     {
-        var secretKey = _configuration["Jwt:SecretKey"] 
-            ?? throw new InvalidOperationException("JWT SecretKey is not configured");
-        return new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secretKey));
+        var privateKeyBase64 = Environment.GetEnvironmentVariable("JWT_PRIVATE_KEY_BASE64");
+        var privateKeyPath = Environment.GetEnvironmentVariable("JWT_PRIVATE_KEY_PATH");
+        string pem;
+
+        if (!string.IsNullOrEmpty(privateKeyBase64))
+        {
+            pem = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(privateKeyBase64));
+        }
+        else if (!string.IsNullOrEmpty(privateKeyPath) && File.Exists(privateKeyPath))
+        {
+            pem = File.ReadAllText(privateKeyPath);
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                "JWT private key not configured. Set JWT_PRIVATE_KEY_BASE64 or JWT_PRIVATE_KEY_PATH environment variable.");
+        }
+
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(pem.AsSpan());
+        return new RsaSecurityKey(rsa);
     }
 }
