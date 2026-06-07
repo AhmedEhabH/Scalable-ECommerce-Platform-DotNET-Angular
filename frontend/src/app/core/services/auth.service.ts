@@ -21,7 +21,6 @@ export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly wishlistService = inject(WishlistService);
 
-  private readonly TOKEN_KEY = 'access_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_KEY = 'auth_user';
 
@@ -40,7 +39,7 @@ export class AuthService {
   }
 
   get isAuthenticated(): boolean {
-    return !!this.getStoredToken();
+    return !!this.currentUser;
   }
 
   hasRole(role: string): boolean {
@@ -61,11 +60,10 @@ export class AuthService {
 
   restoreAuthState(): void {
     const storedUser = this.getStoredUser();
-    const token = this.getStoredToken();
-    if (storedUser && token) {
+    if (storedUser) {
       this.authUserSubject.next(storedUser);
     } else {
-      this.logout();
+      this.authUserSubject.next(null);
     }
   }
 
@@ -102,39 +100,35 @@ export class AuthService {
   }
 
   logout(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem(this.TOKEN_KEY);
-      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-      localStorage.removeItem(this.USER_KEY);
-      sessionStorage.removeItem(this.TOKEN_KEY);
-      sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
-      sessionStorage.removeItem(this.USER_KEY);
-    }
+    this.http.post(`${this.baseUrl}/auth/logout`, {}, { withCredentials: true }).subscribe({
+      error: () => {}
+    });
+    this.clearStorage();
     this.authUserSubject.next(null);
   }
 
-  getToken(): string | null {
-    if (!isPlatformBrowser(this.platformId)) {
-      return null;
+  private clearStorage(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+      sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
+      sessionStorage.removeItem(this.USER_KEY);
     }
-    return localStorage.getItem(this.TOKEN_KEY) || sessionStorage.getItem(this.TOKEN_KEY);
   }
 
-  getStoredToken(): string | null {
+  getStoredRefreshToken(): string | null {
     if (!isPlatformBrowser(this.platformId)) {
       return null;
     }
-    return localStorage.getItem(this.TOKEN_KEY) || sessionStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY) || sessionStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   private handleAuthSuccess(data: AuthResponse, rememberMe: boolean): void {
     const storage = this.getStorage(rememberMe);
-    storage.setItem(this.TOKEN_KEY, data.accessToken);
     storage.setItem(this.REFRESH_TOKEN_KEY, data.refreshToken);
 
-    const userId = this.extractUserIdFromToken(data.accessToken);
     const user: AuthUser = {
-      id: userId || data.email,
+      id: data.userId,
       email: data.email,
       fullName: data.fullName,
       role: data.role
@@ -142,17 +136,6 @@ export class AuthService {
     storage.setItem(this.USER_KEY, JSON.stringify(user));
     this.authUserSubject.next(user);
     this.wishlistService.syncWishlistWithServer();
-  }
-
-  private extractUserIdFromToken(token: string): string | null {
-    try {
-      const payload = token.split('.')[1];
-      if (!payload) return null;
-      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-      return decoded.sub || decoded.nameidentifier || decoded.id || null;
-    } catch {
-      return null;
-    }
   }
 
   private getStoredUser(): AuthUser | null {

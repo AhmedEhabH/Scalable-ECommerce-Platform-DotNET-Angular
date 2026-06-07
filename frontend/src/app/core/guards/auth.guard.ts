@@ -6,7 +6,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.getStoredToken()) {
+  if (authService.isAuthenticated) {
     return true;
   }
 
@@ -18,8 +18,7 @@ export const adminGuard: CanActivateFn = (_route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const token = authService.getStoredToken();
-  if (!token) {
+  if (!authService.isAuthenticated) {
     router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
     return false;
   }
@@ -36,8 +35,7 @@ export const sellerGuard: CanActivateFn = (_route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const token = authService.getStoredToken();
-  if (!token) {
+  if (!authService.isAuthenticated) {
     router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
     return false;
   }

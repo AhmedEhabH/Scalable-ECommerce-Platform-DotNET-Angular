@@ -20,9 +20,7 @@ export class NotificationService implements OnDestroy {
     const url = environment.apiBaseUrl.replace('/api', '') + '/hubs/notifications';
 
     this.hubConnection = new HubConnectionBuilder()
-      .withUrl(url, {
-        accessTokenFactory: () => this.authService.getToken() ?? ''
-      })
+      .withUrl(url)
       .withAutomaticReconnect()
       .build();
 
