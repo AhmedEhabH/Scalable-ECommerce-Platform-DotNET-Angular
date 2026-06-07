@@ -148,6 +148,22 @@ Below are screenshots showcasing the platform's key features and user flows:
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (local or via Docker)
 - [Docker](https://www.docker.com/get-started) (optional but recommended)
 
+## Setup
+
+### Environment Variables
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Open `.env` and fill in the values for each key.
+
+### Docker (Quick Start)
+
+```bash
+docker compose up --build
+```
+
 ### Backend Setup
 
 #### Option 1: Local Development
