@@ -1,4 +1,3 @@
-using ECommerce.Api.Controllers;
 using ECommerce.Api.Models;
 using ECommerce.Application.Auth.DTOs;
 using ECommerce.Application.Auth.Interfaces;
@@ -14,10 +13,24 @@ namespace ECommerce.Api.Controllers;
 public class AuthController : BaseApiController
 {
     private readonly IAuthService _authService;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IConfiguration configuration)
     {
         _authService = authService;
+        _configuration = configuration;
+    }
+
+    private void SetAccessTokenCookie(string token)
+    {
+        var expirationMinutes = _configuration.GetValue<int>("Jwt:AccessTokenExpirationMinutes", 60);
+        Response.Cookies.Append("access_token", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(expirationMinutes)
+        });
     }
 
     /// <summary>
@@ -33,18 +46,27 @@ public class AuthController : BaseApiController
     ///     }
     /// </remarks>
     /// <param name="request">Login credentials</param>
-    /// <returns>JWT access token and refresh token</returns>
-    /// <response code="200">Returns authentication tokens</response>
+    /// <returns>User info and refresh token (access token set in HttpOnly cookie)</returns>
+    /// <response code="200">Returns user info and refresh token</response>
     /// <response code="401">Invalid credentials</response>
     [HttpPost("login")]
-    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 200)]
     [ProducesResponseType(typeof(ApiResponse<object>), 401)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         try
         {
             var result = await _authService.LoginAsync(request);
-            return HandleSuccess(result);
+            SetAccessTokenCookie(result.AccessToken);
+            return HandleSuccess(new
+            {
+                result.UserId,
+                result.RefreshToken,
+                result.ExpiresAt,
+                result.Email,
+                result.FullName,
+                result.Role
+            });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -68,18 +90,27 @@ public class AuthController : BaseApiController
     ///     }
     /// </remarks>
     /// <param name="request">Registration details</param>
-    /// <returns>JWT tokens for the new user</returns>
+    /// <returns>User info and refresh token (access token set in HttpOnly cookie)</returns>
     /// <response code="201">User created successfully</response>
     /// <response code="400">Validation error or user already exists</response>
     [HttpPost("register")]
-    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), 201)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 201)]
     [ProducesResponseType(typeof(ApiResponse<object>), 400)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         try
         {
             var result = await _authService.RegisterAsync(request);
-            return HandleCreated(result);
+            SetAccessTokenCookie(result.AccessToken);
+            return HandleCreated(new
+            {
+                result.UserId,
+                result.RefreshToken,
+                result.ExpiresAt,
+                result.Email,
+                result.FullName,
+                result.Role
+            });
         }
         catch (InvalidOperationException ex)
         {
@@ -99,22 +130,49 @@ public class AuthController : BaseApiController
     ///     }
     /// </remarks>
     /// <param name="request">Refresh token</param>
-    /// <returns>New JWT tokens</returns>
-    /// <response code="200">Returns new authentication tokens</response>
+    /// <returns>New user info and refresh token (new access token set in HttpOnly cookie)</returns>
+    /// <response code="200">Returns new user info and refresh token</response>
     /// <response code="401">Invalid or expired refresh token</response>
     [HttpPost("refresh-token")]
-    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 200)]
     [ProducesResponseType(typeof(ApiResponse<object>), 401)]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         try
         {
             var result = await _authService.RefreshTokenAsync(request.RefreshToken);
-            return HandleSuccess(result);
+            SetAccessTokenCookie(result.AccessToken);
+            return HandleSuccess(new
+            {
+                result.UserId,
+                result.RefreshToken,
+                result.ExpiresAt,
+                result.Email,
+                result.FullName,
+                result.Role
+            });
         }
         catch (UnauthorizedAccessException ex)
         {
             return HandleUnauthorized(ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Logout user by clearing the access token cookie
+    /// </summary>
+    /// <response code="200">Logged out successfully</response>
+    [HttpPost("logout")]
+    [ProducesResponseType(typeof(ApiResponse<object>), 200)]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Append("access_token", "", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddDays(-1)
+        });
+        return HandleOkWithMessage("Logged out successfully");
     }
 }

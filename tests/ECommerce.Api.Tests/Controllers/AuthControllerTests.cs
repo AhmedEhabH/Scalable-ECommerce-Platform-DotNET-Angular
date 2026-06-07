@@ -2,22 +2,38 @@ using ECommerce.Api.Controllers;
 using ECommerce.Api.Models;
 using ECommerce.Application.Auth.DTOs;
 using ECommerce.Application.Auth.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 using FluentAssertions;
+using System.Text.Json;
 
 namespace ECommerce.Api.Tests.Controllers;
 
 public class AuthControllerTests
 {
     private readonly Mock<IAuthService> _mockAuthService;
+    private readonly IConfiguration _configuration;
     private readonly AuthController _controller;
 
     public AuthControllerTests()
     {
         _mockAuthService = new Mock<IAuthService>();
-        _controller = new AuthController(_mockAuthService.Object);
+
+        _configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:AccessTokenExpirationMinutes"] = "60"
+            })
+            .Build();
+
+        _controller = new AuthController(_mockAuthService.Object, _configuration);
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
     }
 
     #region Login Tests
@@ -36,10 +52,37 @@ public class AuthControllerTests
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.StatusCode.Should().Be(200);
-        var apiResponse = okResult.Value.Should().BeOfType<ApiResponse<AuthResponse>>().Subject;
-        apiResponse.Success.Should().BeTrue();
-        apiResponse.Data.Should().NotBeNull();
-        apiResponse.Data!.Email.Should().Be("user@example.com");
+
+        var json = JsonSerializer.Serialize(okResult.Value);
+        var response = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        response!.Should().ContainKey("Success");
+        response["Success"].GetBoolean().Should().BeTrue();
+        response.Should().ContainKey("Data");
+
+        var dataJson = response["Data"].GetRawText();
+        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(dataJson);
+        data!.Should().ContainKey("Email");
+        data["Email"].GetString().Should().Be("user@example.com");
+        data.Should().NotContainKey("AccessToken");
+    }
+
+    [Fact]
+    public async Task Login_ShouldSetAccessTokenCookie()
+    {
+        var request = new LoginRequest("user@example.com", "Password123!");
+        var authResponse = CreateAuthResponse();
+
+        _mockAuthService
+            .Setup(x => x.LoginAsync(request))
+            .ReturnsAsync(authResponse);
+
+        await _controller.Login(request);
+
+        var cookie = _controller.Response.Headers["Set-Cookie"].FirstOrDefault();
+        cookie.Should().NotBeNull();
+        cookie.Should().Contain("access_token=");
+        cookie.Should().Contain("httponly");
+        cookie.Should().Contain("samesite=none");
     }
 
     [Fact]
@@ -90,8 +133,11 @@ public class AuthControllerTests
 
         var createdResult = result.Should().BeOfType<ObjectResult>().Subject;
         createdResult.StatusCode.Should().Be(201);
-        var apiResponse = createdResult.Value.Should().BeOfType<ApiResponse<AuthResponse>>().Subject;
-        apiResponse.Success.Should().BeTrue();
+
+        var json = JsonSerializer.Serialize(createdResult.Value);
+        var response = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        response!.Should().ContainKey("Success");
+        response["Success"].GetBoolean().Should().BeTrue();
     }
 
     [Fact]
@@ -127,9 +173,11 @@ public class AuthControllerTests
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.StatusCode.Should().Be(200);
-        var apiResponse = okResult.Value.Should().BeOfType<ApiResponse<AuthResponse>>().Subject;
-        apiResponse.Success.Should().BeTrue();
-        apiResponse.Data!.AccessToken.Should().NotBeNullOrEmpty();
+
+        var json = JsonSerializer.Serialize(okResult.Value);
+        var response = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+        response!.Should().ContainKey("Success");
+        response["Success"].GetBoolean().Should().BeTrue();
     }
 
     [Fact]
@@ -164,9 +212,28 @@ public class AuthControllerTests
 
     #endregion
 
+    #region Logout Tests
+
+    [Fact]
+    public void Logout_ShouldClearCookie()
+    {
+        var result = _controller.Logout();
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.StatusCode.Should().Be(200);
+
+        var cookie = _controller.Response.Headers["Set-Cookie"].FirstOrDefault();
+        cookie.Should().NotBeNull();
+        cookie.Should().Contain("access_token=;");
+        cookie.Should().Contain("expires=");
+    }
+
+    #endregion
+
     private static AuthResponse CreateAuthResponse()
     {
         return new AuthResponse(
+            UserId: "user-123",
             AccessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-token",
             RefreshToken: "refresh-token-value",
             ExpiresAt: DateTime.UtcNow.AddMinutes(60),

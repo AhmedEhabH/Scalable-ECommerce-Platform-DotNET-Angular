@@ -101,6 +101,7 @@ public class AuthService : IAuthService
         await _context.SaveChangesAsync();
 
         return new AuthResponse(
+            UserId: user.Id.ToString(),
             AccessToken: accessToken,
             RefreshToken: newRefreshToken,
             ExpiresAt: expiresAt,

@@ -135,12 +135,20 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+
+            var accessToken = context.Request.Cookies["access_token"];
+
+            if (string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                accessToken = context.Request.Query["access_token"];
+            }
+
+            if (!string.IsNullOrEmpty(accessToken))
             {
                 context.Token = accessToken;
             }
+
             return Task.CompletedTask;
         }
     };
@@ -304,6 +312,14 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseStaticFiles();
 
 app.UseCors("AllowAngular");
+
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    ctx.Response.Headers.Append("X-Frame-Options", "DENY");
+    ctx.Response.Headers.Append("Referrer-Policy", "no-referrer");
+    await next();
+});
 
 app.UseRateLimiter();
 
