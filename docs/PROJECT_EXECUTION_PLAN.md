@@ -10,7 +10,7 @@ Produce a polished .NET 8 + Angular 21 multi-role e-commerce portfolio applicati
 - has accurate handoff documentation.
 
 ## Current milestone
-Phase 2.5 portability and critical-flow protection is complete. Phase 3 has not started.
+Phase 3 UI recovery is complete. Phase 4 has not started.
 
 ## Next shortest path to done
 
@@ -72,6 +72,17 @@ Acceptance:
 
 Finish this phase fully before touching catalog details/admin styling.
 
+Completed:
+1. Design tokens refined to single branded Light/Dark pair (removed github/github-dark themes).
+2. Application shell with sticky header, main content area, and footer.
+3. Header: desktop navigation, mobile hamburger menu, cart/wishlist badges, theme toggle (Light/Dark), account menu with role-aware links.
+4. Footer: brand, navigation groups (Shop, Support, Account, Legal), copyright, social links.
+5. Home page: hero section, trust badges, featured products, categories, latest products - all API-driven.
+6. Removed AI-generated visual excess: animated decorative shapes, glass effects, pulse animations, excessive gradients, duplicate promotional sections.
+7. Responsive verified at 1440px, 768px, 390px breakpoints.
+8. Accessibility: visible focus states, semantic HTML, reduced motion support, usable contrast.
+9. All 42 frontend tests pass, 221 backend tests pass.
+
 ### Phase 4 — Customer commerce flows
 Complete, in order:
 1. product list/filter/sort;
@@ -131,10 +142,10 @@ Every report must show:
 ## Current progress
 
 - Overall target: polished, reliable .NET 8 + Angular 21 portfolio storefront/admin application
-- Current phase: Phase 2.5 complete; Phase 3 not started
+- Current phase: Phase 3 complete; Phase 4 not started
 - Phase completion: 100%
-- Finished: portability policy, auth/CI docs, critical Domain/API/frontend tests, refresh fix, complete green gate, handoff preparation
-- Remaining: UI recovery, customer commerce UI, seller/admin UI, portfolio hardening
-- Blocking issue: none in the codebase; Phase 3 awaits explicit user direction
-- Next three actions: Phase 3 shell/design tokens, responsive header/footer, API-driven home page
-- Estimated remaining phases: 4
+- Finished: portability policy, auth/CI docs, critical Domain/API/frontend tests, refresh-token fix, complete green gate, handoff preparation, UI recovery (shell, header, footer, tokens, home)
+- Remaining: customer commerce UI, seller/admin UI, portfolio hardening
+- Blocking issue: none in the codebase; Phase 4 awaits explicit user direction
+- Next three actions: Phase 4 product list/filter/sort, product details, wishlist
+- Estimated remaining phases: 3

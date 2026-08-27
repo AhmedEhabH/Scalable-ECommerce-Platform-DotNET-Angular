@@ -21,6 +21,9 @@ Phase 2.5 commits:
 - `a856e31` — accurate auth/CI documentation
 - Phase 2.5 handoff documentation is committed after the entries above.
 
+Phase 3 commits:
+- (to be added after completion)
+
 Baseline before Phase 2:
 - `0fcf559`
 
@@ -30,8 +33,8 @@ Baseline before Phase 2:
 - Angular framework/CDK/compiler packages are aligned at 21.2.13.
 - normal clean `npm ci` was reported passing.
 - frontend production build was reported passing.
-- frontend discovered tests: 33/33 passing.
-- backend discovered tests: Application 108 + API 79 = 187 passing.
+- frontend discovered tests: 42/42 passing.
+- backend discovered tests: Application 108 + API 84 + Domain 29 = 221 passing.
 - access token is no longer manually read by ReviewService.
 - CI has backend and frontend jobs.
 - `.gitattributes` now normalizes repository text to LF, preserves Windows launchers as CRLF, and marks common assets binary.
@@ -41,12 +44,13 @@ Baseline before Phase 2:
 - Backend total: 221/221 discovered tests passing.
 - The refresh-token query now uses persisted `ExpiresAt`/`RevokedAt` fields and succeeds through HTTP.
 - README and `SYSTEM_STATE.md` describe HttpOnly access-cookie authentication and build/test CI accurately.
+- Phase 3 UI recovery: Application shell, header, footer, design tokens (Light/Dark), and home page storefront completed.
 
 ## Independent audit findings
 1. Pass counts still do not imply broad coverage; the new tests protect only the explicitly selected critical behaviors.
 2. Refresh token remains in localStorage/sessionStorage and is a security-hardening item; do not let it derail UI recovery unless auth is otherwise unsafe.
 3. Backend nullable warnings remain; fix only proven runtime-risk items, not all warnings.
-4. Initial Angular bundle remains above budget: 845.11 kB versus 500.00 kB.
+4. Initial Angular bundle remains above budget: 843.41 kB versus 500.00 kB.
 5. Clean npm install reports 30 audit findings (3 low, 5 moderate, 21 high, 1 critical); triage direct exploitable risks later without broad upgrade churn.
 6. README still uses some broad portfolio claims such as production-ready/full CQRS; Phase 6 owns that audit.
 
@@ -57,15 +61,15 @@ Phase 2.5 completion requires `recovery/ui-portfolio` to be pushed and its remot
 The first stable tag is `v0.1.0-green-baseline`, created only after the complete green gate and documentation commit.
 
 ## Immediate next actions
-1. Begin Phase 3 only when explicitly requested.
-2. Recover the application shell/header/footer/home as one coherent vertical slice.
-3. Preserve the Phase 2.5 auth/cart/wishlist behavior protected by the new tests.
+1. Begin Phase 4 only when explicitly requested.
+2. Implement customer commerce flows: product list/filter/sort, product details, wishlist, cart, checkout, order success/history.
+3. Preserve the Phase 2.5/3 auth/cart/wishlist behavior protected by the tests.
 
 ## Current phase status
 - Phase 1 forensic audit: COMPLETE
 - Phase 2 green technical baseline: COMPLETE
 - Phase 2.5 portability/test protection: COMPLETE
-- Phase 3 UI recovery: NOT STARTED
+- Phase 3 UI recovery: COMPLETE
 - Phase 4 customer flows: NOT STARTED
 - Phase 5 seller/admin UI: NOT STARTED
 - Phase 6 portfolio hardening: NOT STARTED
@@ -73,4 +77,4 @@ The first stable tag is `v0.1.0-green-baseline`, created only after the complete
 ## North-star reminder
 Do not add more architecture now.
 The next visible value is:
-GREEN + BACKED UP + TEST-PROTECTED → UI RECOVERY.
+GREEN + BACKED UP + TEST-PROTECTED → CUSTOMER COMMERCE FLOWS.
