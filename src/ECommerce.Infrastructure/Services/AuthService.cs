@@ -70,10 +70,14 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
     {
+        var utcNow = _dateTimeService.UtcNow;
         var user = await _context.Users
             .Include(u => u.RefreshTokens)
             .FirstOrDefaultAsync(u => u.IsActive &&
-                u.RefreshTokens.Any(rt => rt.Token == refreshToken && !rt.IsExpired && !rt.IsRevoked));
+                u.RefreshTokens.Any(rt =>
+                    rt.Token == refreshToken &&
+                    rt.ExpiresAt > utcNow &&
+                    rt.RevokedAt == null));
 
         if (user == null)
         {
