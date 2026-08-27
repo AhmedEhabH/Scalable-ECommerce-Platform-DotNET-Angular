@@ -14,7 +14,7 @@ describe('HeaderComponent', () => {
   const authUser$ = new BehaviorSubject<AuthUser | null>(null);
   const cartCount$ = new BehaviorSubject(0);
   const wishlistCount$ = new BehaviorSubject(0);
-  const theme = signal<'light' | 'dark' | 'github' | 'github-dark'>('light');
+  const theme = signal<'light' | 'dark'>('light');
 
   beforeEach(() => {
     authUser$.next(null);
@@ -33,10 +33,8 @@ describe('HeaderComponent', () => {
           provide: ThemeService,
           useValue: {
             theme,
-            themes: ['light', 'dark', 'github', 'github-dark'],
+            themes: ['light', 'dark'],
             isDark: () => false,
-            isGithub: () => false,
-            isGithubDark: () => false,
             toggle: vi.fn(),
             setTheme: vi.fn(),
             getThemeLabel: (value: string) => value
