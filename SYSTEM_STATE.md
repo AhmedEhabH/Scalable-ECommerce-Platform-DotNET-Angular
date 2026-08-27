@@ -15,7 +15,7 @@
 | **AI** | Google Gemini API (primary) / OpenAI (fallback) | — |
 | **Charts** | Chart.js + ng2-charts | latest |
 | **Testing** | Vitest (frontend) / xUnit (backend) | — |
-| **CI/CD** | GitHub Actions | — |
+| **CI** | GitHub Actions (backend/frontend build and test) | — |
 | **Containerization** | Docker / Docker Compose | — |
 | **Message Broker** | RabbitMQ | 4.0 (management) |
 | **Event Bus** | MassTransit | 8.3.3 |
@@ -43,7 +43,7 @@ ECommerce.Api → ECommerce.Infrastructure → ECommerce.Application → ECommer
 ### Backend (API)
 
 #### Authentication & Authorization
-- [x] JWT-based login/register/refresh-token
+- [x] JWT-based login/register/refresh-token with the access token issued as an HttpOnly cookie
 - [x] Three roles: `User`, `Admin`, `Seller`
 - [x] Token-based auth with refresh token rotation
 - [x] BCrypt password hashing (work factor 12)
@@ -154,9 +154,9 @@ ECommerce.Api → ECommerce.Infrastructure → ECommerce.Application → ECommer
 - [x] Not-found (404) and unauthorized (403) pages
 
 #### Authentication
-- [x] Login form with show/hide password, "remember me" (localStorage vs sessionStorage)
+- [x] Login form with show/hide password and refresh-token persistence selected by "remember me"
 - [x] Registration form
-- [x] JWT token storage and auto-attachment via interceptor
+- [x] HttpOnly access-token cookie transport via credentialed requests (`withCredentials: true`)
 - [x] Auto-redirect to login on 401
 - [x] Role-aware UI (Admin/Seller routes)
 
@@ -261,7 +261,7 @@ ECommerce.Api → ECommerce.Infrastructure → ECommerce.Application → ECommer
 | **State Machine** | `Order.UpdateStatus()`, `Payment` lifecycle | Controlled status transitions with validation |
 | **Mediator (limited)** | `AdminDashboardSummaryQuery` + Handler | Single CQRS query for admin dashboard |
 | **Guard Pattern** | Angular route guards | Protect routes by auth/role |
-| **Interceptor Pattern** | Angular HTTP interceptor | Attach JWT headers, handle 401 globally |
+| **Interceptor Pattern** | Angular HTTP interceptor | Send credentialed cookie requests and handle 401 globally |
 | **Signal Pattern** | Angular signals for state | Reactive UI state (theme, toast, wishlist, cart) |
 | **Pipe Pattern** | `ProductImagePipe` | Transform image URLs with fallback chain |
 
@@ -277,7 +277,7 @@ ECommerce.Api → ECommerce.Infrastructure → ECommerce.Application → ECommer
 | **OpenAI API** | AI chat fallback provider | `Ai:Provider = OpenAI`, `OpenAI:ApiKey`, `OpenAI:Model` |
 | **BCrypt** | Password hashing | Work factor 12 |
 | **Serilog** | Structured logging | Console + rolling file sink |
-| **JWT Bearer** | Authentication | Symmetric key, configurable issuer/audience/expiry |
+| **JWT access cookie** | Authentication | RS256 JWT in a Secure/HttpOnly/SameSite=None cookie; configurable issuer/audience/expiry |
 | **Slugify (custom)** | URL slug generation | Custom extension method |
 
 ### API Endpoints Reference
@@ -301,7 +301,6 @@ All backend routes are prefixed with `/api` (e.g., `/api/products`, `/api/auth/l
 | Constraint | Workaround |
 |---|---|
 | `localStorage` unavailable during SSR | Check `isPlatformBrowser()` before accessing storage |
-| JWT token decoding requires browser `atob()` | Falls back to empty string if unavailable |
 | Chart.js v3+ requires explicit registration | `Chart.register(...registerables)` in component module scope |
 
 ### Architecture Notes

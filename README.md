@@ -40,11 +40,11 @@ This project demonstrates a complete e-commerce platform featuring a robust back
 ### Technical Features
 - Clean Architecture backend with CQRS
 - Feature-based Angular frontend with standalone components
-- JWT-based authentication with refresh tokens
+- JWT authentication with an HttpOnly access-token cookie and refresh-token rotation
 - Entity Framework Core with SQL Server
 - TypeScript throughout the frontend
 - Unit and integration test coverage
-- CI/CD pipeline with GitHub Actions
+- GitHub Actions CI for backend and frontend build/test validation
 - Responsive UI with Angular Flex-Layout
 - Theme support (light/dark modes)
 
@@ -54,7 +54,7 @@ This project demonstrates a complete e-commerce platform featuring a robust back
 - **Framework:** ASP.NET Core 8
 - **Architecture:** Clean Architecture with CQRS
 - **Database:** SQL Server with Entity Framework Core
-- **Authentication:** JWT Bearer tokens with refresh tokens
+- **Authentication:** RS256 JWT access tokens transported in an HttpOnly cookie, with refresh tokens
 - **Authorization:** Role-based access control
 - **Validation:** FluentValidation
 - **Logging:** Serilog
@@ -296,8 +296,8 @@ See API Overview below for complete endpoint documentation.
 
 ### Authentication
 - `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login and receive JWT token
-- `POST /api/auth/refresh` - Refresh expired access token
+- `POST /api/auth/login` - Login; sets the access token in an HttpOnly cookie
+- `POST /api/auth/refresh-token` - Rotate the refresh token and set a new access cookie
 
 ### Products
 - `GET /api/products` - List products (with filtering/pagination)
@@ -346,10 +346,7 @@ See API Overview below for complete endpoint documentation.
 - `POST /api/payments/{id}/refund` - Refund payment
 
 ### Security
-All endpoints except authentication and public product listings require a valid JWT token:
-```
-Authorization: Bearer <access_token>
-```
+All endpoints except authentication and public product listings require a valid access token. Browser clients receive it in a `Secure`, `HttpOnly`, `SameSite=None` `access_token` cookie and send it with credentialed requests. Frontend JavaScript does not read the access token or construct `Authorization` headers. The refresh token is still stored by the client and remains a tracked security-hardening item.
 
 ## Testing
 
@@ -377,7 +374,7 @@ Authorization: Bearer <access_token>
 2. **Full E-Commerce Flow:** Complete implementation from product browsing to order fulfillment, including payment processing.
 3. **Modern Technology Stack:** Utilizes latest stable versions of .NET 8, Angular 21, Entity Framework Core, and TypeScript.
 4. **Quality Focus:** Comprehensive testing, structured logging, and API documentation demonstrate professional development practices.
-5. **Deployment Ready:** Docker support and CI/CD pipeline enable consistent deployments across environments.
+5. **Reproducible Validation:** Docker configuration and GitHub Actions CI provide consistent backend/frontend build and test checks; automated deployment is not currently configured.
 6. **Portfolio Quality:** Clean codebase, responsive design, and attention to UX details make it suitable for showcasing to employers or clients.
 7. **Extensible Foundation:** Modular architecture allows for easy addition of features like wishlist, reviews, or seller dashboards.
 
