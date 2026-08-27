@@ -3,18 +3,12 @@ import { TestBed } from '@angular/core/testing';
 import { EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { authGuard, adminGuard, sellerGuard } from './auth.guard';
 import { AuthUser } from '../models';
 
-function setupAuth(user: AuthUser | null, token: string | null): EnvironmentInjector {
-  if (token) {
-    localStorage.setItem('access_token', token);
-  } else {
-    localStorage.removeItem('access_token');
-  }
-
+function setupAuth(user: AuthUser | null): EnvironmentInjector {
   if (user) {
     localStorage.setItem('auth_user', JSON.stringify(user));
   } else {
@@ -27,7 +21,10 @@ function setupAuth(user: AuthUser | null, token: string | null): EnvironmentInje
       AuthService,
       provideHttpClient(),
       provideHttpClientTesting(),
-      provideRouter([])
+      {
+        provide: Router,
+        useValue: { navigate: vi.fn(), url: '/' }
+      }
     ]
   });
 
@@ -37,7 +34,7 @@ function setupAuth(user: AuthUser | null, token: string | null): EnvironmentInje
 describe('authGuard', () => {
   it('should allow access when token exists', () => {
     const user: AuthUser = { id: '1', email: 'a@b.com', fullName: 'A', role: 'Customer' };
-    const injector = setupAuth(user, 'valid-token');
+    const injector = setupAuth(user);
 
     const result = runInInjectionContext(injector, () =>
       authGuard(
@@ -50,7 +47,7 @@ describe('authGuard', () => {
   });
 
   it('should deny access when no token exists', () => {
-    const injector = setupAuth(null, null);
+    const injector = setupAuth(null);
 
     const result = runInInjectionContext(injector, () =>
       authGuard(
@@ -66,7 +63,7 @@ describe('authGuard', () => {
 describe('adminGuard', () => {
   it('should allow access for Admin role', () => {
     const user: AuthUser = { id: '1', email: 'admin@test.com', fullName: 'Admin', role: 'Admin' };
-    const injector = setupAuth(user, 'admin-token');
+    const injector = setupAuth(user);
 
     const result = runInInjectionContext(injector, () =>
       adminGuard(
@@ -80,7 +77,7 @@ describe('adminGuard', () => {
 
   it('should deny access for Seller role', () => {
     const user: AuthUser = { id: '1', email: 'seller@test.com', fullName: 'Seller', role: 'Seller' };
-    const injector = setupAuth(user, 'seller-token');
+    const injector = setupAuth(user);
 
     const result = runInInjectionContext(injector, () =>
       adminGuard(
@@ -94,7 +91,7 @@ describe('adminGuard', () => {
 
   it('should deny access for Customer/User role', () => {
     const user: AuthUser = { id: '1', email: 'customer@test.com', fullName: 'Customer', role: 'User' };
-    const injector = setupAuth(user, 'customer-token');
+    const injector = setupAuth(user);
 
     const result = runInInjectionContext(injector, () =>
       adminGuard(
@@ -107,7 +104,7 @@ describe('adminGuard', () => {
   });
 
   it('should deny access when no token', () => {
-    const injector = setupAuth(null, null);
+    const injector = setupAuth(null);
 
     const result = runInInjectionContext(injector, () =>
       adminGuard(
@@ -123,7 +120,7 @@ describe('adminGuard', () => {
 describe('sellerGuard', () => {
   it('should allow access for Seller role', () => {
     const user: AuthUser = { id: '1', email: 'seller@test.com', fullName: 'Seller', role: 'Seller' };
-    const injector = setupAuth(user, 'seller-token');
+    const injector = setupAuth(user);
 
     const result = runInInjectionContext(injector, () =>
       sellerGuard(
@@ -137,7 +134,7 @@ describe('sellerGuard', () => {
 
   it('should allow access for Admin role', () => {
     const user: AuthUser = { id: '1', email: 'admin@test.com', fullName: 'Admin', role: 'Admin' };
-    const injector = setupAuth(user, 'admin-token');
+    const injector = setupAuth(user);
 
     const result = runInInjectionContext(injector, () =>
       sellerGuard(
@@ -151,7 +148,7 @@ describe('sellerGuard', () => {
 
   it('should deny access for Customer/User role', () => {
     const user: AuthUser = { id: '1', email: 'customer@test.com', fullName: 'Customer', role: 'User' };
-    const injector = setupAuth(user, 'customer-token');
+    const injector = setupAuth(user);
 
     const result = runInInjectionContext(injector, () =>
       sellerGuard(
@@ -164,7 +161,7 @@ describe('sellerGuard', () => {
   });
 
   it('should deny access when no token', () => {
-    const injector = setupAuth(null, null);
+    const injector = setupAuth(null);
 
     const result = runInInjectionContext(injector, () =>
       sellerGuard(
