@@ -1,138 +1,70 @@
 :root,
 [data-theme="light"] {
-  --color-primary: #4f46e5;
-  --color-primary-dark: #4338ca;
-  --color-primary-light: rgba(79, 70, 229, 0.15);
-  --color-primary-rgb: 79, 70, 229;
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-light: rgba(37, 99, 235, 0.12);
+  --color-primary-rgb: 37, 99, 235;
 
-  --color-accent: #10b981;
-  --color-accent-dark: #059669;
+  --color-accent: #059669;
+  --color-accent-dark: #047857;
 
   --color-bg: #ffffff;
-  --color-bg-secondary: #f8f9fa;
+  --color-bg-secondary: #f3f4f6;
   --color-surface: #ffffff;
   --color-surface-elevated: #ffffff;
-  --color-border: #e5e7eb;
-  --color-border-subtle: #f3f4f6;
+  --color-border: #d1d5db;
+  --color-border-subtle: #e5e7eb;
 
   --color-text: #111827;
   --color-text-secondary: #4b5563;
   --color-text-muted: #9ca3af;
   --color-text-inverse: #ffffff;
 
-  --color-success: #10b981;
+  --color-success: #059669;
   --color-success-bg: #d1fae5;
-  --color-warning: #f59e0b;
+  --color-warning: #d97706;
   --color-warning-bg: #fef3c7;
-  --color-error: #ef4444;
+  --color-error: #dc2626;
   --color-error-bg: #fee2e2;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 [data-theme="dark"] {
-  --color-primary: #6366f1;
-  --color-primary-dark: #818cf8;
-  --color-primary-light: rgba(99, 102, 241, 0.2);
-  --color-primary-rgb: 99, 102, 241;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #60a5fa;
+  --color-primary-light: rgba(59, 130, 246, 0.18);
+  --color-primary-rgb: 59, 130, 246;
 
-  --color-accent: #34d399;
-  --color-accent-dark: #10b981;
+  --color-accent: #10b981;
+  --color-accent-dark: #34d399;
 
-  --color-bg: #0f0f0f;
-  --color-bg-secondary: #1a1a1a;
-  --color-surface: #1a1a1a;
-  --color-surface-elevated: #262626;
-  --color-border: #2e2e2e;
-  --color-border-subtle: #252525;
+  --color-bg: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-surface: #1e293b;
+  --color-surface-elevated: #334155;
+  --color-border: #334155;
+  --color-border-subtle: #1e293b;
 
-  --color-text: #ececf1;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted: #71717a;
-  --color-text-inverse: #0f0f0f;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-text-inverse: #0f172a;
 
-  --color-success: #34d399;
-  --color-success-bg: rgba(52, 211, 153, 0.15);
-  --color-warning: #fbbf24;
-  --color-warning-bg: rgba(251, 191, 36, 0.15);
-  --color-error: #f87171;
-  --color-error-bg: rgba(248, 113, 113, 0.15);
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-
-[data-theme="github"] {
-  --color-primary: #0969da;
-  --color-primary-dark: #0550ae;
-  --color-primary-light: rgba(9, 105, 218, 0.15);
-  --color-primary-rgb: 9, 105, 218;
-
-  --color-accent: #1a7f37;
-  --color-accent-dark: #116329;
-
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f6f8fa;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
-  --color-border: #d0d7de;
-  --color-border-subtle: #d8dee4;
-
-  --color-text: #24292f;
-  --color-text-secondary: #57606a;
-  --color-text-muted: #8c959f;
-  --color-text-inverse: #ffffff;
-
-  --color-success: #1a7f37;
-  --color-success-bg: #dafbe1;
-  --color-warning: #9a6700;
-  --color-warning-bg: #fff8c5;
-  --color-error: #cf222e;
-  --color-error-bg: #ffebe9;
-
-  --shadow-sm: 0 1px 2px rgba(31, 35, 40, 0.04);
-  --shadow-md: 0 3px 6px rgba(149, 157, 165, 0.15);
-  --shadow-lg: 0 8px 24px rgba(149, 157, 165, 0.2);
-  --shadow-card: 0 1px 3px rgba(31, 35, 40, 0.04), 0 0 0 1px rgba(31, 35, 40, 0.06);
-}
-
-[data-theme="github-dark"] {
-  --color-primary: #58a6ff;
-  --color-primary-dark: #79c0ff;
-  --color-primary-light: rgba(88, 166, 255, 0.2);
-  --color-primary-rgb: 88, 166, 255;
-
-  --color-accent: #3fb950;
-  --color-accent-dark: #238636;
-
-  --color-bg: #0d1117;
-  --color-bg-secondary: #161b22;
-  --color-surface: #161b22;
-  --color-surface-elevated: #21262d;
-  --color-border: #30363d;
-  --color-border-subtle: #21262d;
-
-  --color-text: #c9d1d9;
-  --color-text-secondary: #8b949e;
-  --color-text-muted: #6e7681;
-  --color-text-inverse: #0d1117;
-
-  --color-success: #3fb950;
-  --color-success-bg: rgba(63, 185, 80, 0.15);
-  --color-warning: #d29922;
-  --color-warning-bg: rgba(210, 153, 34, 0.15);
-  --color-error: #f85149;
-  --color-error-bg: rgba(248, 81, 73, 0.15);
+  --color-success: #10b981;
+  --color-success-bg: rgba(16, 185, 129, 0.15);
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.15);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 :root {
@@ -162,6 +94,17 @@
   --transition-slow: 300ms ease;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 *,
 *::before,
 *::after {
@@ -174,7 +117,6 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
 }
 
 body {

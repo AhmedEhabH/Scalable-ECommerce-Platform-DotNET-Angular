@@ -1,11 +1,11 @@
 import { Injectable, signal, effect, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
-export type Theme = 'light' | 'dark' | 'github' | 'github-dark';
+export type Theme = 'light' | 'dark';
 
 const STORAGE_KEY = 'app-theme';
 
-const THEMES: Theme[] = ['light', 'dark', 'github', 'github-dark'];
+const THEMES: Theme[] = ['light', 'dark'];
 
 @Injectable({
   providedIn: 'root'
@@ -16,8 +16,6 @@ export class ThemeService {
   readonly theme = signal<Theme>(this.getInitialTheme());
   readonly themes = THEMES;
   readonly isDark = () => this.theme() === 'dark';
-  readonly isGithub = () => this.theme() === 'github';
-  readonly isGithubDark = () => this.theme() === 'github-dark';
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -61,8 +59,6 @@ export class ThemeService {
     switch (theme) {
       case 'light': return 'Light';
       case 'dark': return 'Dark';
-      case 'github': return 'GitHub';
-      case 'github-dark': return 'GitHub Dark';
     }
   }
 }
