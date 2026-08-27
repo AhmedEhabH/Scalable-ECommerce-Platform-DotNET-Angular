@@ -29,6 +29,12 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Logging.ClearProviders();
+    builder.Logging.AddConsole();
+}
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidationFilter>();
@@ -130,7 +136,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    var rsaPublicKey = LoadRsaPublicKey();
+    var rsaPublicKey = LoadRsaPublicKey(builder.Environment.IsEnvironment("Testing"));
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -369,7 +375,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 
 app.Run();
 
-static RsaSecurityKey LoadRsaPublicKey()
+static RsaSecurityKey LoadRsaPublicKey(bool useEphemeralTestingKey)
 {
     var publicKeyBase64 = Environment.GetEnvironmentVariable("JWT_PUBLIC_KEY_BASE64");
     var publicKeyPath = Environment.GetEnvironmentVariable("JWT_PUBLIC_KEY_PATH");
@@ -385,6 +391,11 @@ static RsaSecurityKey LoadRsaPublicKey()
     }
     else
     {
+        if (useEphemeralTestingKey)
+        {
+            return new RsaSecurityKey(RSA.Create(2048));
+        }
+
         throw new InvalidOperationException(
             "JWT public key not configured. Set JWT_PUBLIC_KEY_BASE64 or JWT_PUBLIC_KEY_PATH environment variable.");
     }

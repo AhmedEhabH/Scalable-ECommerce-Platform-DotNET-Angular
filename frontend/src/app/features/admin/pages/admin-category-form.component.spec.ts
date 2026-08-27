@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { convertToParamMap, provideRouter } from '@angular/router';
 import { AdminCategoryFormComponent } from './admin-category-form.component';
 import { AdminService } from '../../../core/services/admin.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
@@ -58,9 +58,9 @@ describe('AdminCategoryFormComponent', () => {
   });
 
   it('should load category data in edit mode', () => {
-    // Simulate edit mode with category ID
-    component['categoryId'] = '1';
-    component['isEdit'].set(true);
+    component['route'] = {
+      snapshot: { paramMap: convertToParamMap({ id: '1' }) }
+    } as any;
 
     component.ngOnInit();
 

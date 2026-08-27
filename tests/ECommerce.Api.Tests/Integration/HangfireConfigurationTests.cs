@@ -14,6 +14,7 @@ public class HangfireConfigurationTests
     {
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
+            builder.UseEnvironment("Testing");
             builder.ConfigureTestServices(services =>
             {
                 services.AddHangfire(config => config.UseInMemoryStorage());
@@ -24,6 +25,9 @@ public class HangfireConfigurationTests
 
         var response = await client.GetAsync("/hangfire");
 
-        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        Assert.True(
+            response.StatusCode == System.Net.HttpStatusCode.Unauthorized,
+            $"Expected 401 Unauthorized but received {(int)response.StatusCode} {response.StatusCode}. Body: {responseBody}");
     }
 }
