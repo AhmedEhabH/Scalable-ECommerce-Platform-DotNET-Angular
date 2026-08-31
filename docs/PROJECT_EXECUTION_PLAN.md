@@ -142,9 +142,9 @@ Every report must show:
 ## Current progress
 
 - Overall target: polished, reliable .NET 8 + Angular 21 portfolio storefront/admin application
-- Current phase: Phase 3 complete; Phase 4 not started
-- Phase completion: 100%
-- Finished: portability policy, auth/CI docs, critical Domain/API/frontend tests, refresh-token fix, complete green gate, handoff preparation, UI recovery (shell, header, footer, tokens, home)
+- Current phase: Phase 3.1 complete; Phase 4 not started
+- Phase completion: 100% (Phase 3.1 closeout done)
+- Finished: portability policy, auth/CI docs, critical Domain/API/frontend tests, refresh-token fix, complete green gate, handoff preparation, UI recovery (shell, header, footer, tokens, home), Phase 3.1 closeout (footer links, screenshots, ZIP, report)
 - Remaining: customer commerce UI, seller/admin UI, portfolio hardening
 - Blocking issue: none in the codebase; Phase 4 awaits explicit user direction
 - Next three actions: Phase 4 product list/filter/sort, product details, wishlist
