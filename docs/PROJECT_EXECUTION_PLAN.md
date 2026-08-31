@@ -10,7 +10,7 @@ Produce a polished .NET 8 + Angular 21 multi-role e-commerce portfolio applicati
 - has accurate handoff documentation.
 
 ## Current milestone
-Phase 3 UI recovery is complete. Phase 4 has not started.
+Phase 3 UI recovery is complete. Phases 4A, 4B, 4C complete. Phases 4D, 4E, 4F, 5, 6 remain.
 
 ## Next shortest path to done
 
@@ -81,7 +81,7 @@ Completed:
 6. Removed AI-generated visual excess: animated decorative shapes, glass effects, pulse animations, excessive gradients, duplicate promotional sections.
 7. Responsive verified at 1440px, 768px, 390px breakpoints.
 8. Accessibility: visible focus states, semantic HTML, reduced motion support, usable contrast.
-9. All 42 frontend tests pass, 221 backend tests pass.
+8. All 121 frontend tests pass, 221 backend tests pass.
 
 ### Phase 4 — Customer commerce flows
 Complete, in order:

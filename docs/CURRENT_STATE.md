@@ -40,14 +40,15 @@ Baseline before Phase 2:
 - `.gitattributes` now normalizes repository text to LF, preserves Windows launchers as CRLF, and marks common assets binary.
 - Domain tests: 29/29 passing for order, product, review, and payment invariants.
 - API tests: 84/84 passing, including 5 HTTP scenarios covering cookie auth, refresh, checkout persistence/ownership, product roles/validation, and order status authorization.
-- Frontend tests: 42/42 passing across 10 spec files, including header, cart, checkout, and product-card protection.
+- Frontend tests: 121/121 passing across 13 spec files, including header, cart, checkout, product-card, product-list, product-details, and wishlist protection.
 - Backend total: 221/221 discovered tests passing.
 - The refresh-token query now uses persisted `ExpiresAt`/`RevokedAt` fields and succeeds through HTTP.
 - README and `SYSTEM_STATE.md` describe HttpOnly access-cookie authentication and build/test CI accurately.
 - Phase 3 UI recovery: Application shell, header, footer, design tokens (Light/Dark), and home page storefront completed.
 - Phase 3.1 closeout: complete — footer fake links removed, Phase 3 screenshots committed, portable ZIP created, tag verified.
 - Phase 4A (product catalog - filter/sort/pagination/cards): COMPLETE
-- Phase 4B (product details page - tests covering load, error, reviews, cart, wishlist, auth-gated flows): COMPLETE — 29 tests in product-details.page.spec.ts; total frontend suite 87/87 across 12 files.
+- Phase 4B (product details page - tests covering load, error, reviews, cart, wishlist, auth-gated flows): COMPLETE — 29 tests in product-details.page.spec.ts
+- Phase 4C (wishlist page - component + service tests): COMPLETE — 34 tests in wishlist.component.spec.ts; total frontend suite 121/121 across 13 files.
 
 ## Independent audit findings
 1. Pass counts still do not imply broad coverage; the new tests protect only the explicitly selected critical behaviors.
@@ -74,7 +75,9 @@ The first stable tag is `v0.1.0-green-baseline`, created only after the complete
 - Phase 2.5 portability/test protection: COMPLETE
 - Phase 3 UI recovery: COMPLETE
 - Phase 4A (product catalog - filter/sort/pagination/cards): COMPLETE
-- Phase 4B-F (product details, wishlist, cart, checkout, orders): NOT STARTED
+- Phase 4B (product details page - tests): COMPLETE — 29 tests; frontend suite 87/87
+- Phase 4C (wishlist page - component + service tests): COMPLETE — 34 tests; frontend suite 121/121 across 13 files
+- Phase 4D (cart), 4E (checkout), 4F (orders): NOT STARTED
 - Phase 5 seller/admin UI: NOT STARTED
 - Phase 6 portfolio hardening: NOT STARTED
 
