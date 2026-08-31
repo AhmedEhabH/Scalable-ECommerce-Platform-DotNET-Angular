@@ -71,7 +71,8 @@ The first stable tag is `v0.1.0-green-baseline`, created only after the complete
 - Phase 2 green technical baseline: COMPLETE
 - Phase 2.5 portability/test protection: COMPLETE
 - Phase 3 UI recovery: COMPLETE
-- Phase 4 customer flows: NOT STARTED
+- Phase 4A (product catalog - filter/sort/pagination/cards): COMPLETE
+- Phase 4B-F (product details, wishlist, cart, checkout, orders): NOT STARTED
 - Phase 5 seller/admin UI: NOT STARTED
 - Phase 6 portfolio hardening: NOT STARTED
 
