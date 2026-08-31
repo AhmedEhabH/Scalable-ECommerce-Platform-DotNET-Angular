@@ -45,6 +45,7 @@ Baseline before Phase 2:
 - The refresh-token query now uses persisted `ExpiresAt`/`RevokedAt` fields and succeeds through HTTP.
 - README and `SYSTEM_STATE.md` describe HttpOnly access-cookie authentication and build/test CI accurately.
 - Phase 3 UI recovery: Application shell, header, footer, design tokens (Light/Dark), and home page storefront completed.
+- Phase 3.1 closeout: complete — footer fake links removed, Phase 3 screenshots committed, portable ZIP created, tag verified.
 
 ## Independent audit findings
 1. Pass counts still do not imply broad coverage; the new tests protect only the explicitly selected critical behaviors.
