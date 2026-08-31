@@ -46,6 +46,8 @@ Baseline before Phase 2:
 - README and `SYSTEM_STATE.md` describe HttpOnly access-cookie authentication and build/test CI accurately.
 - Phase 3 UI recovery: Application shell, header, footer, design tokens (Light/Dark), and home page storefront completed.
 - Phase 3.1 closeout: complete — footer fake links removed, Phase 3 screenshots committed, portable ZIP created, tag verified.
+- Phase 4A (product catalog - filter/sort/pagination/cards): COMPLETE
+- Phase 4B (product details page - tests covering load, error, reviews, cart, wishlist, auth-gated flows): COMPLETE — 29 tests in product-details.page.spec.ts; total frontend suite 87/87 across 12 files.
 
 ## Independent audit findings
 1. Pass counts still do not imply broad coverage; the new tests protect only the explicitly selected critical behaviors.

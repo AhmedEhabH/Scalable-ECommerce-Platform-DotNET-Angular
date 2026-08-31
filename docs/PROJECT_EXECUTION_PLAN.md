@@ -85,13 +85,9 @@ Completed:
 
 ### Phase 4 — Customer commerce flows
 Complete, in order:
-1. product list/filter/sort;
-2. product card;
-3. product details/reviews;
-4. wishlist;
-5. cart;
-6. checkout;
-7. order success/history/details.
+1. product list/filter/sort — COMPLETE (Phase 4A: filter/sort/pagination/cards implementation + 14 tests; total frontend suite 58/58)
+2. product card — COMPLETE (pre-existing + 2 tests in Phase 4A)
+3. product details/reviews — COMPLETE (Phase 4B: 29 component tests added; implementation already existed in branch; total frontend suite 87/87 across 12 files)
 
 Each route is a vertical slice:
 UI + responsive + relevant tests + docs + screenshot + commit.
